@@ -19,10 +19,14 @@ app.configure(function(){
 
 app.use(express.static(path.join(__dirname, 'core')));
 app.use(express.static(path.join(__dirname, 'tpl/images')));
-app.use(express.static(path.join(__dirname, 'tpl/css'))); 
+app.use(express.static(path.join(__dirname, 'tpl/css')));
+app.use(express.static(path.join(__dirname, 'tpl/gamejs')));
 
 app.get('/', function(req, res){
   res.sendfile(__dirname + '/tpl/game.html'); 
+});
+app.get('/game', function(req, res){
+  res.sendfile(__dirname + '/tpl/gamescreen.html'); 
 });
 
 server.listen(app.get('port'), function(){
@@ -49,9 +53,9 @@ io.sockets.on('connection', function (socket) {
    ChatServer.emitMessages(io);
 
     socket.on('new player', function (data) {
-		var new_character = Server.addUserToList(data, socket.id);
-		Server.board.addCharacter(new_character);
-		Server.board.spawnCharacter(Server.board.characters[0], constants.TEAM_GOODGUYS);
+		  var new_character = Server.addUserToList(data, socket.id);
+		  Server.board.addCharacter(new_character);
+		  Server.board.spawnCharacter(Server.board.characters[0], constants.TEAM_GOODGUYS);
     	SocketUtils.sendPlayers(io, Server.user_list);	    		      	
     });
 
@@ -62,7 +66,7 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('receiveMessage', function(data) {
-      console.log('Receiving message: '+data.message);
+      console.log('Receiving message: '+ data.message);
       var character = SocketUtils.findPlayerBySocketId(socket.id, Server.user_list);
       ChatServer.addMessage(character.char_name, data.message);
       ChatServer.emitMessages(io);
