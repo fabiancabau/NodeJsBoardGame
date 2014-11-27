@@ -1,0 +1,11 @@
+{
+  "name": "Game",
+  "description": "Game",
+  "main" : "index.js",
+  "version": "0.0.1",
+  "private": false,
+  "dependencies": {
+    "express": "latest",
+    "socket.io": "latest"
+  }
+}

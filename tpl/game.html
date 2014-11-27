@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+
+	<head>
+		<script src='/socket.io/socket.io.js'></script>
+		<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+		<link rel="stylesheet" href="main.css">
+		<link rel="stylesheet" href="animate.css">
+	</head>
+
+	<body>
+
+		<div class="board" style="display:none;">
+			<div class="tile ground"></div>
+			<div class="tile ground"></div>
+			<div class="tile ground"></div>
+			<div class="tile ground"></div>
+			<div class="tile ground"></div>
+
+			<div class="tile"></div>
+			<div class="tile ground"></div>
+			<div class="tile"></div>
+			<div class="tile ground"></div>
+			<div class="tile"></div>
+
+			<div class="tile"></div>
+			<div class="tile ground"></div>
+			<div class="tile"></div>
+			<div class="tile ground"></div>
+			<div class="tile ground"></div>
+
+			<div class="tile"></div>
+			<div class="tile ground"></div>
+			<div class="tile ground"></div>
+			<div class="tile ground"></div>
+			<div class="tile"></div>
+
+			<div class="tile ground"></div>
+			<div class="tile ground"></div>
+			<div class="tile"></div>
+			<div class="tile"></div>
+			<div class="tile"></div>
+		</div>
+
+
+		<div id="players"></div>
+		
+	</body>
+
+
+		<script>
+		
+
+		$(document).ready(function(){
+			var socket = io.connect();
+			players = [];
+
+			var nickname = prompt("Entre com seu nick : ", "");
+           	socket.emit('new player', {p: nickname});
+
+
+           	socket.on('update players', function (_p) {
+           		console.log('Receiving player list');
+           		console.log(_p);
+           		$('#players').html('');
+           		for (var i = 0; i < _p.length; i++) {
+           			players.push(_p[i]);
+           			$('#players').append(_p[i].char_name + '<br>');
+           		}
+            });
+
+            $('#findMatch').click(function(){
+            	socket.emit('find match');
+            });
+
+        });    
+		</script>
+</html>

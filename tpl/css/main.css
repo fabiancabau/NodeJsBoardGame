@@ -1,0 +1,18 @@
+.board {
+    width: 760px;
+    height: 760px;
+    margin-left:30%;
+    position:absolute;
+    border:1px solid black;
+}
+ 
+.tile {
+    width: 149px;
+    height: 149px;
+    border: 1px solid black;
+    float:left;
+}
+ 
+.ground {
+    background-color: #8C4800;
+}
