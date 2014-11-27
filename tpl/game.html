@@ -43,6 +43,16 @@
 
 
 		<div id="players"></div>
+
+
+		<br><br><br>
+
+		<input type="text" id="msg">
+		<button id="sendMsg">Send</button>
+		<br>
+
+		<div id="chatMessages">
+		</div>
 		
 	</body>
 
@@ -70,6 +80,18 @@
 
             $('#findMatch').click(function(){
             	socket.emit('find match');
+            });
+
+            socket.on('emitMessages', function(data){
+            	$('#chatMessages').html('');
+            	for (var x = 0; x < data.length; x++) {
+            		$('#chatMessages').append('<p>'+data[x].char_name+': '+data[x].message+'<p><br>');
+            	}
+            })
+
+            $('#sendMsg').click(function() {
+            	var msg = {'message': $('#msg').val()};
+            	socket.emit('receiveMessage', msg);
             });
 
         });    

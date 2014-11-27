@@ -1,11 +1,9 @@
 function SocketUtils() {
 
-	this.test = 'aaa';
-
-	SocketUtils.prototype.findPlayerBySocketId = function(players, socketid) {
-		for (var i = 0; i < players.length; i++) {
-			if (players[i].socketid == socketid) {
-				return players[i];
+	SocketUtils.prototype.findPlayerBySocketId = function(socket_id, list) {
+		for (var i = 0; i < list.length; i++) {
+			if (list[i].unique_id == socket_id) {
+				return list[i];
 			}
 		}
 	}

@@ -38,10 +38,15 @@ var SocketUtils = require('./core/socketutils');
 var Server = require('./core/server');
 Server = new Server();
 
+var ChatServer = require('./core/chat');
+ChatServer = new ChatServer();
+
+
 console.log('Server created: ' + Server.server_id);
 
 io.sockets.on('connection', function (socket) {
-	
+	 
+   ChatServer.emitMessages(io);
 
     socket.on('new player', function (data) {
 		var new_character = Server.addUserToList(data, socket.id);
@@ -55,6 +60,14 @@ io.sockets.on('connection', function (socket) {
     	console.log('Character '+ socket.id + ' disconnected');
     	SocketUtils.sendPlayers(io, Server.user_list);
     });
+
+    socket.on('receiveMessage', function(data) {
+      console.log('Receiving message: '+data.message);
+      var character = SocketUtils.findPlayerBySocketId(socket.id, Server.user_list);
+      ChatServer.addMessage(character.char_name, data.message);
+      ChatServer.emitMessages(io);
+    });
+
 
 });
 
