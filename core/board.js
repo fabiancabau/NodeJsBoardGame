@@ -161,11 +161,12 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 
 		var found = false;
 
-		for (var x = 0; x < this.characters.length; x++) {
+		for (var i = 0; i < this.characters.length; i++) {
 			if (!found) {
-				if (this.characters[x].unique_id == unique_id) {
-					this.characters[x].x = x;
-					this.characters[x].y = y;
+				if (this.characters[i].unique_id == unique_id) {
+					console.log(this.characters[i]);
+					this.characters[i].x = x;
+					this.characters[i].y = y;
 					return true;
 				}
 			}

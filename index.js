@@ -66,13 +66,14 @@ io.sockets.on('connection', function (socket) {
       //Send message to clientes with all players
     	SocketUtils.sendPlayers(io, Server.board.characters);
 
-      socket.emit('myHero', myHero);	    		      	
+      socket.emit('myHero', myHero); 		      	
     });
 
 
     socket.on('updateHeroPos', function (data){
       myHero.x = data.x;
       myHero.y = data.y;
+      console.log(data);
       Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
       socket.emit('myHero', myHero);
       SocketUtils.sendPlayers(io, Server.board.characters); 

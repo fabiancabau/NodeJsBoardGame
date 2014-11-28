@@ -1,13 +1,3 @@
-
-
-
-
-
-
-
-
-
-
 $(document).ready(function(){
 	var socket = io.connect();
 	var heroes = Array();
@@ -35,7 +25,6 @@ $(document).ready(function(){
 			hero.ready = true;
 		};
 		hero.image.src = "hero.png";
-
 		// Game objects
 		hero.speed = 256 // movement in pixels per second
 
@@ -57,20 +46,19 @@ $(document).ready(function(){
 	var update = function (modifier) {
 		if (38 in keysDown) { // Player holding up
 			myHero.y -= myHero.speed * modifier;
-			socket.emit('updateHeroPos', {'x': myHero.x, 'y': myHero.y, 'unique_id': myHero.unique_id});
+			socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
 		}
 		if (40 in keysDown) { // Player holding down
 			myHero.y += myHero.speed * modifier;
-			console.log(myHero);
-			socket.emit('updateHeroPos', {'x': myHero.x, 'y': myHero.y, 'unique_id': myHero.unique_id});
+			socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
 		}
 		if (37 in keysDown) { // Player holding left
 			myHero.x -= myHero.speed * modifier;
-			socket.emit('updateHeroPos', {'x': myHero.x, 'y': myHero.y, 'unique_id': myHero.unique_id});
+			socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
 		}
 		if (39 in keysDown) { // Player holding right
 			myHero.x += myHero.speed * modifier;
-			socket.emit('updateHeroPos', {'x': myHero.x, 'y': myHero.y, 'unique_id': myHero.unique_id});
+			socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
 		}
 	};
 
@@ -92,9 +80,9 @@ $(document).ready(function(){
 			ctx.drawImage(bgImage, 0, 0);
 		}
 
-		for (var x = 0; x < heroes.length; x++) { 
-			if (heroes[x].ready) {
-				ctx.drawImage(heroes[x].image, heroes[x].x, heroes[x].y);
+		for (var i = 0; i < heroes.length; i++) { 
+			if (heroes[i].ready) {
+				ctx.drawImage(heroes[i].image, heroes[i].x, heroes[i].y);
 			}
 		}
 
@@ -111,7 +99,7 @@ $(document).ready(function(){
 		var now = Date.now();
 		var delta = now - then;
 
-		update(delta / 20000);
+		update(delta / 1000);
 		render(heroes);
 
 		then = now;
@@ -137,10 +125,10 @@ $(document).ready(function(){
 
    	socket.on('myHero', function (hero) {
    		myHero = hero;
-   		console.log(myHero);
    	});
 
    	socket.on('update players', function (_p) {
+   		heroes = Array();
    		for (var i = 0; i < _p.length; i++) {
    			heroes.push(createHero(_p[i]));
    			render(heroes);
