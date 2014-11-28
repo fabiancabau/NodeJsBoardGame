@@ -45,20 +45,24 @@ $(document).ready(function(){
 	// Update game objects
 	var update = function (modifier) {
 		if (38 in keysDown) { // Player holding up
-			myHero.y -= myHero.speed * modifier;
-			socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
+			//myHero.y -= myHero.speed * modifier;
+			//socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
+			socket.emit('sendInput', {'key': 'up', 'modifier': modifier});
 		}
 		if (40 in keysDown) { // Player holding down
-			myHero.y += myHero.speed * modifier;
-			socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
+			//myHero.y += myHero.speed * modifier;
+			//socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
+			socket.emit('sendInput', {'key': 'down', 'modifier': modifier});
 		}
 		if (37 in keysDown) { // Player holding left
-			myHero.x -= myHero.speed * modifier;
-			socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
+			//myHero.x -= myHero.speed * modifier;
+			//socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
+			socket.emit('sendInput', {'key': 'left', 'modifier': modifier});
 		}
 		if (39 in keysDown) { // Player holding right
-			myHero.x += myHero.speed * modifier;
-			socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
+			//myHero.x += myHero.speed * modifier;
+			//socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
+			socket.emit('sendInput', {'key': 'right', 'modifier': modifier});
 		}
 	};
 

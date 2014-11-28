@@ -79,6 +79,25 @@ io.sockets.on('connection', function (socket) {
       SocketUtils.sendPlayers(io, Server.board.characters); 
     });
 
+    socket.on('sendInput', function (data){
+      if (data.key == 'up') {
+        myHero.y -= myHero.speed * data.modifier;
+      }
+      if (data.key == 'down') {
+        myHero.y += myHero.speed * data.modifier;
+      }
+      if (data.key == 'left') {
+        myHero.x -= myHero.speed * data.modifier;
+      }
+      if (data.key == 'right') {
+        myHero.x += myHero.speed * data.modifier;
+      }
+
+      Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
+      socket.emit('myHero', myHero);
+      SocketUtils.sendPlayers(io, Server.board.characters); 
+    });
+
     socket.on('disconnect', function () {
     	SocketUtils.removeSocketFromList(socket.id, Server.board.characters);
     	console.log('Character '+ socket.id + ' disconnected');
