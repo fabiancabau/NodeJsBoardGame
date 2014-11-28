@@ -1,33 +1,16 @@
-function Character(unique_id, char_name, hp, mana, atk, str, def, weapon, shield) {
+function Character(unique_id, char_name, x, y) {
 
 	this.unique_id = unique_id;
 	this.char_name = char_name;
-	this.hp = hp;
-	this.mana = mana;
-	this.atk = atk;
-	this.str = str;
-	this.def = def;
-	this.weapon = weapon;
-	this.shield = shield;
+	this.x = 0;
+	this.y = 0;
+	this.speed = 256;
 
 
 	Character.prototype.move = function(direction, qty) {
 		console.log('Moving: ' + direction + ':' + qty);
 	}
 
-	Character.prototype.attack = function(target) {
-		dmg = this.atk * (this.str * this.weapon.dmg);
-		final_dmg = dmg - target.def;
-
-		target.hp = target.hp - final_dmg;
-
-		if (target.hp <= 0) {
-			return false;
-		}
-		else {
-			return target.hp;
-		}
-	}
 }
 
 module.exports = Character;

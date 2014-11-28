@@ -37,6 +37,7 @@ server.listen(app.get('port'), function(){
 //Requires
 var constants = require('./core/constants');
 var io = require("socket.io").listen(server);
+var Character = require('./core/character');
 
 var SocketUtils = require('./core/socketutils');
 var Server = require('./core/server');
@@ -50,19 +51,37 @@ console.log('Server created: ' + Server.server_id);
 
 io.sockets.on('connection', function (socket) {
 	 
-   ChatServer.emitMessages(io);
+   //ChatServer.emitMessages(io);
+   var myHero = new Character();
 
     socket.on('new player', function (data) {
+      //Create a new character using user input
 		  var new_character = Server.addUserToList(data, socket.id);
+      //Add to server board
 		  Server.board.addCharacter(new_character);
-		  Server.board.spawnCharacter(Server.board.characters[0], constants.TEAM_GOODGUYS);
-    	SocketUtils.sendPlayers(io, Server.user_list);	    		      	
+      //Spawn new character on a random location based on it's team
+		  Server.board.spawnCharacter(new_character, constants.TEAM_GOODGUYS);
+
+      myHero = Server.board._get_character_by_unique_id(socket.id);
+      //Send message to clientes with all players
+    	SocketUtils.sendPlayers(io, Server.board.characters);
+
+      socket.emit('myHero', myHero);	    		      	
+    });
+
+
+    socket.on('updateHeroPos', function (data){
+      myHero.x = data.x;
+      myHero.y = data.y;
+      Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
+      socket.emit('myHero', myHero);
+      SocketUtils.sendPlayers(io, Server.board.characters); 
     });
 
     socket.on('disconnect', function () {
-    	SocketUtils.removeSocketFromList(socket.id, Server.user_list);
+    	SocketUtils.removeSocketFromList(socket.id, Server.board.characters);
     	console.log('Character '+ socket.id + ' disconnected');
-    	SocketUtils.sendPlayers(io, Server.user_list);
+    	SocketUtils.sendPlayers(io, Server.board.characters);
     });
 
     socket.on('receiveMessage', function(data) {

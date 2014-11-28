@@ -10,6 +10,7 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 	this.characters = Array();
 	this.created = false;
 	this.boardBody = Create2DArray(size_x, size_y);
+	this.boardBackground = '';
 
 
 	function Create2DArray(rows,columns) {
@@ -31,12 +32,27 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 			this.characters.push(character);
 			this.active_characters_count++;
 			console.log('Active characters count: ' + this.active_characters_count);
-			return true;
+			return character;
 		}
 		else {
 			return false;
 		}
 
+	}
+
+	Board.prototype._get_character_by_unique_id = function(unique_id) {
+		var found = false;
+
+		for (var x = 0; x < this.characters.length; x++) {
+			if (!found) {
+				if (this.characters[x].unique_id == unique_id) {
+					return this.characters[x];
+					break;
+				}
+			}
+		}
+
+		return found;
 	}
 
 	Board.prototype._has_character_on_game = function(character) {
@@ -130,6 +146,8 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 		rand_y = Math.floor((Math.random() * (max_y - min_y)) + min_y);
 
 		if (!this._has_character_on_board(character) && this._is_slot_free(this.boardBody[rand_x][rand_y])) {
+			character.x = rand_x;
+			character.y = rand_y;
 			this.boardBody[rand_x][rand_y] = character
 			console.log('Spawned character ' + character.char_name + ' on position ' + rand_x + ', ' + rand_y);
 		}
@@ -139,86 +157,21 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 
 	}
 
-	Board.prototype.moveCharacter = function(character, direction, qty) {
+	Board.prototype.moveCharacter = function(unique_id, x, y) {
 
-		var current_pos = this._get_character_position(character);
-		var new_pos = current_pos;
+		var found = false;
 
-		if (direction == constants.RIGHT) {
-
-			if ((new_pos.x + qty) < this.size_x) {
-				new_pos.x = new_pos.x + qty;
-			}
-			else {
-				console.log('Cannot move right; End of board');
-				return false;
-			}
-		}
-		else if (direction == constants.LEFT) {
-			if ((new_pos.x - qty) >= 0) {
-				new_pos.x = new_pos.x - qty;
-			}
-			else {
-				console.log('Cannot move left; End of board');
-				return false;
-			}
-		}
-		else if (direction == constants.UP) {
-			if ((new_pos.y + qty) < this.size_y) {
-				new_pos.y = new_pos.y + qty;
-			}
-			else {
-				console.log('Cannot move up; End of board');
-				return false;
-			}
-		}
-		else if (direction == constants.DOWN) {
-			if ((new_pos.y - qty) >= 0) {
-				new_pos.y = new_pos.y - qty;
-			}
-			else {
-				console.log('Cannot move down; End of board');
-				return false;
-			}
-
-		}
-		else if (direction == constants.D_UP_RIGHT) {
-			if (!(new_pos.x + qty) > this.size_x && !(new_pos.y + qty) > this.size_y) {
-				new_pos.x = new_pos.x + qty;
-				new_pos.y = new_pos.y + qty;
-			}
-			else {
-				console.log('Cannot move diagonal up right; End of board');
-			}
-		}
-		else if (direction == constants.D_UP_LEFT) {
-			if (!(new_pos.x - qty) < this.size_x && !(new_pos.y + qty) > this.size_y) {
-				new_pos.x = new_pos.x - qty;
-				new_pos.y = new_pos.y + qty;
-			}
-			else {
-				console.log('Cannot move diagonal up left; End of board');
-			}
-		}
-		else if (direction == constants.D_DOWN_RIGHT) {
-			if (!(new_pos.x + qty) > this.size_x && !(new_pos.y - qty) < this.size_y) {
-				new_pos.x = new_pos.x + qty;
-				new_pos.y = new_pos.y - qty;
-			}
-			else {
-				console.log('Cannot move diagonal down right; End of board');
-			}
-		}
-		else if (direction == constants.D_DOWN_LEFT) {
-			if (!(new_pos.x - qty) < this.size_x && !(new_pos.y - qty) < this.size_y) {
-				new_pos.x = new_pos.x - qty;
-				new_pos.y = new_pos.y - qty;
-			}
-			else {
-				console.log('Cannot move diagonal down left; End of board');
+		for (var x = 0; x < this.characters.length; x++) {
+			if (!found) {
+				if (this.characters[x].unique_id == unique_id) {
+					this.characters[x].x = x;
+					this.characters[x].y = y;
+					return true;
+				}
 			}
 		}
 
+		return found;
 	}
 
 }

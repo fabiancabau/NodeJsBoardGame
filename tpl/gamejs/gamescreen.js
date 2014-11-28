@@ -1,130 +1,150 @@
-// Create the canvas
-var canvas = document.createElement("canvas");
-var ctx = canvas.getContext("2d");
-canvas.width = 512;
-canvas.height = 480;
-document.body.appendChild(canvas);
 
-// Background image
-var bgReady = false;
-var bgImage = new Image();
-bgImage.onload = function () {
-	bgReady = true;
-};
-bgImage.src = "background.png";
 
-// Hero image
-var heroReady = false;
-var heroImage = new Image();
-heroImage.onload = function () {
-	heroReady = true;
-};
-heroImage.src = "hero.png";
 
-// Monster image
-var monsterReady = false;
-var monsterImage = new Image();
-monsterImage.onload = function () {
-	monsterReady = true;
-};
-monsterImage.src = "monster.png";
 
-// Game objects
-var hero = {
-	speed: 256 // movement in pixels per second
-};
-var monster = {};
-var monstersCaught = 0;
 
-// Handle keyboard controls
-var keysDown = {};
 
-addEventListener("keydown", function (e) {
-	keysDown[e.keyCode] = true;
-}, false);
 
-addEventListener("keyup", function (e) {
-	delete keysDown[e.keyCode];
-}, false);
 
-// Reset the game when the player catches a monster
-var reset = function () {
-	hero.x = canvas.width / 2;
-	hero.y = canvas.height / 2;
 
-	// Throw the monster somewhere on the screen randomly
-	monster.x = 32 + (Math.random() * (canvas.width - 64));
-	monster.y = 32 + (Math.random() * (canvas.height - 64));
-};
 
-// Update game objects
-var update = function (modifier) {
-	if (38 in keysDown) { // Player holding up
-		hero.y -= hero.speed * modifier;
-	}
-	if (40 in keysDown) { // Player holding down
-		hero.y += hero.speed * modifier;
-	}
-	if (37 in keysDown) { // Player holding left
-		hero.x -= hero.speed * modifier;
-	}
-	if (39 in keysDown) { // Player holding right
-		hero.x += hero.speed * modifier;
-	}
+$(document).ready(function(){
+	var socket = io.connect();
+	var heroes = Array();
+	//GAME VARS
+	// Create the canvas
+	var canvas = document.createElement("canvas");
+	var ctx = canvas.getContext("2d");
+	canvas.width = 512;
+	canvas.height = 480;
+	document.body.appendChild(canvas);
 
-	// Are they touching?
-	if (
-		hero.x <= (monster.x + 32)
-		&& monster.x <= (hero.x + 32)
-		&& hero.y <= (monster.y + 32)
-		&& monster.y <= (hero.y + 32)
-	) {
-		++monstersCaught;
-		reset();
-	}
-};
+	// Background image
+	var bgReady = false;
+	var bgImage = new Image();
+	bgImage.onload = function () {
+		bgReady = true;
+	};
+	bgImage.src = "background.png";
 
-// Draw everything
-var render = function () {
-	if (bgReady) {
-		ctx.drawImage(bgImage, 0, 0);
-	}
+	function createHero(hero) {
+		// Hero image
+		hero.ready = false;
+		hero.image = new Image();
+		hero.image.onload = function () {
+			hero.ready = true;
+		};
+		hero.image.src = "hero.png";
 
-	if (heroReady) {
-		ctx.drawImage(heroImage, hero.x, hero.y);
-	}
+		// Game objects
+		hero.speed = 256 // movement in pixels per second
 
-	if (monsterReady) {
-		ctx.drawImage(monsterImage, monster.x, monster.y);
-	}
+		return hero;
+	}	
 
-	// Score
-	ctx.fillStyle = "rgb(250, 250, 250)";
-	ctx.font = "24px Helvetica";
-	ctx.textAlign = "left";
-	ctx.textBaseline = "top";
-	ctx.fillText("Goblins caught: " + monstersCaught, 32, 32);
-};
+	// Handle keyboard controls
+	var keysDown = {};
 
-// The main game loop
-var main = function () {
-	var now = Date.now();
-	var delta = now - then;
+	addEventListener("keydown", function (e) {
+		keysDown[e.keyCode] = true;
+	}, false);
 
-	update(delta / 1000);
-	render();
+	addEventListener("keyup", function (e) {
+		delete keysDown[e.keyCode];
+	}, false);
 
-	then = now;
+	// Update game objects
+	var update = function (modifier) {
+		if (38 in keysDown) { // Player holding up
+			myHero.y -= myHero.speed * modifier;
+			socket.emit('updateHeroPos', {'x': myHero.x, 'y': myHero.y, 'unique_id': myHero.unique_id});
+		}
+		if (40 in keysDown) { // Player holding down
+			myHero.y += myHero.speed * modifier;
+			console.log(myHero);
+			socket.emit('updateHeroPos', {'x': myHero.x, 'y': myHero.y, 'unique_id': myHero.unique_id});
+		}
+		if (37 in keysDown) { // Player holding left
+			myHero.x -= myHero.speed * modifier;
+			socket.emit('updateHeroPos', {'x': myHero.x, 'y': myHero.y, 'unique_id': myHero.unique_id});
+		}
+		if (39 in keysDown) { // Player holding right
+			myHero.x += myHero.speed * modifier;
+			socket.emit('updateHeroPos', {'x': myHero.x, 'y': myHero.y, 'unique_id': myHero.unique_id});
+		}
+	};
 
-	// Request to do this again ASAP
-	requestAnimationFrame(main);
-};
+	// Reset the game when the player catches a monster
+	var reset = function () {
+		for (var x = 0; x < heroes.length; x++) {
+			heroes[x].x = canvas.width / 2;
+			heroes[x].y = canvas.height / 2;
+			// Throw the monster somewhere on the screen randomly
+			//monster.x = 32 + (Math.random() * (canvas.width - 64));
+			//monster.y = 32 + (Math.random() * (canvas.height - 64));
+		}
+		
+	};
 
-// Cross-browser support for requestAnimationFrame
-var w = window;
-requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
+	// Draw everything
+	var render = function (heroes) {
+		if (bgReady) {
+			ctx.drawImage(bgImage, 0, 0);
+		}
 
-// Let's play this game!
-var then = Date.now();
-reset();
-main();
+		for (var x = 0; x < heroes.length; x++) { 
+			if (heroes[x].ready) {
+				ctx.drawImage(heroes[x].image, heroes[x].x, heroes[x].y);
+			}
+		}
+
+		// Score
+		ctx.fillStyle = "rgb(250, 250, 250)";
+		ctx.font = "24px Helvetica";
+		ctx.textAlign = "left";
+		ctx.textBaseline = "top";
+		ctx.fillText("Players online: " + heroes.length, 32, 32);
+	};
+
+	// The main game loop
+	var main = function () {
+		var now = Date.now();
+		var delta = now - then;
+
+		update(delta / 20000);
+		render(heroes);
+
+		then = now;
+		// Request to do this again ASAP
+		requestAnimationFrame(main);
+	};
+
+	// Cross-browser support for requestAnimationFrame
+	var w = window;
+	requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
+
+	// Let's play this game!
+	var then = Date.now();
+	reset();
+	main();
+
+
+	
+	var myHero = {};
+
+	var nickname = prompt("Entre com seu nick : ", "");
+   	socket.emit('new player', {p: nickname});
+
+   	socket.on('myHero', function (hero) {
+   		myHero = hero;
+   		console.log(myHero);
+   	});
+
+   	socket.on('update players', function (_p) {
+   		for (var i = 0; i < _p.length; i++) {
+   			heroes.push(createHero(_p[i]));
+   			render(heroes);
+   		}
+    });
+
+});
