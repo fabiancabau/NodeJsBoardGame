@@ -66,18 +66,19 @@ io.sockets.on('connection', function (socket) {
       //Send message to clientes with all players
     	SocketUtils.sendPlayers(io, Server.board.characters);
 
+      //Send player info to client
       socket.emit('myHero', myHero); 		      	
     });
 
 
-    socket.on('updateHeroPos', function (data){
+    /*socket.on('updateHeroPos', function (data){
       myHero.x = data.x;
       myHero.y = data.y;
       console.log(data);
       Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
       socket.emit('myHero', myHero);
       SocketUtils.sendPlayers(io, Server.board.characters); 
-    });
+    });*/
 
     socket.on('sendInput', function (data){
       if (data.key == 'up') {
@@ -104,7 +105,7 @@ io.sockets.on('connection', function (socket) {
     	SocketUtils.sendPlayers(io, Server.board.characters);
     });
 
-    socket.on('receiveMessage', function(data) {
+    socket.on('receiveMessage', function (data) {
       console.log('Receiving message: '+ data.message);
       var character = SocketUtils.findPlayerBySocketId(socket.id, Server.user_list);
       ChatServer.addMessage(character.char_name, data.message);

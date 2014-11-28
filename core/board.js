@@ -8,6 +8,7 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 	this.max_characters = max_characters;
 	this.active_characters_count = active_characters_count;
 	this.characters = Array();
+	this.seekCharacters = Array();
 	this.created = false;
 	this.boardBody = Create2DArray(size_x, size_y);
 	this.boardBackground = '';
@@ -30,6 +31,7 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 
 		if (this.active_characters_count < this.max_characters && !this._has_character_on_game(character) ) {
 			this.characters.push(character);
+			this.seekCharacters.push(character.unique_id);
 			this.active_characters_count++;
 			console.log('Active characters count: ' + this.active_characters_count);
 			return character;
@@ -159,20 +161,11 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 
 	Board.prototype.moveCharacter = function(unique_id, x, y) {
 
-		var found = false;
+		var index = this.seekCharacters.indexOf(unique_id);
+		this.characters[index].x = x;
+		this.characters[index].y = y;
 
-		for (var i = 0; i < this.characters.length; i++) {
-			if (!found) {
-				if (this.characters[i].unique_id == unique_id) {
-					console.log(this.characters[i]);
-					this.characters[i].x = x;
-					this.characters[i].y = y;
-					return true;
-				}
-			}
-		}
-
-		return found;
+		return true;
 	}
 
 }
