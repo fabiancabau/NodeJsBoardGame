@@ -100,6 +100,7 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('disconnect', function () {
+      SocketUtils.removeFromSeek(socket.id, Server.board.seekCharacters);
     	SocketUtils.removeSocketFromList(socket.id, Server.board.characters);
     	console.log('Character '+ socket.id + ' disconnected');
     	SocketUtils.sendPlayers(io, Server.board.characters);

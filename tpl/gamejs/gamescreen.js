@@ -9,6 +9,33 @@ $(document).ready(function(){
 	canvas.height = 480;
 	document.body.appendChild(canvas);
 
+
+
+	//grid width and height
+	var bw = 440;
+	var bh = 400;
+	//padding around grid
+	var p = 35;
+	//size of canvas
+	var cw = bw + (p*2) + 1;
+	var ch = bh + (p*2) + 1;
+
+	function drawBoard(){
+	    for (var x = 0; x <= bw; x += 40) {
+	        ctx.moveTo(0.5 + x + p, p);
+	        ctx.lineTo(0.5 + x + p, bh + p);
+	    }
+
+
+	    for (var x = 0; x <= bh; x += 40) {
+	        ctx.moveTo(p, 0.5 + x + p);
+	        ctx.lineTo(bw + p, 0.5 + x + p);
+	    }
+
+	    ctx.strokeStyle = "black";
+	    ctx.stroke();
+	}
+
 	// Background image
 	var bgReady = false;
 	var bgImage = new Image();
@@ -80,9 +107,7 @@ $(document).ready(function(){
 
 	// Draw everything
 	var render = function (heroes) {
-		if (bgReady) {
-			ctx.drawImage(bgImage, 0, 0);
-		}
+		//drawBoard();
 
 		for (var i = 0; i < heroes.length; i++) { 
 			if (heroes[i].ready) {
@@ -103,6 +128,12 @@ $(document).ready(function(){
 		var now = Date.now();
 		var delta = now - then;
 
+		if (bgReady) {
+			ctx.drawImage(bgImage, 0, 0);
+		}
+
+		drawBoard();
+
 		update(delta / 1000);
 		render(heroes);
 
@@ -119,6 +150,7 @@ $(document).ready(function(){
 	var then = Date.now();
 	reset();
 	main();
+
 
 
 	

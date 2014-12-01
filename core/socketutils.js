@@ -17,6 +17,15 @@ function SocketUtils() {
 		}
 	}
 
+	SocketUtils.prototype.removeFromSeek = function(socket_id, list) {
+		for (var x = 0; x < list.length; x++) {
+			if (list[x] == socket_id) {
+				list.splice(x, 1);
+				return true;
+			}
+		}
+	}
+
 	SocketUtils.prototype.generateServerId = function() {
 	    var text = "";
 	    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
