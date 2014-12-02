@@ -1,9 +1,9 @@
 $(document).ready(function(){
 	var socket = io.connect();
 	var heroes = Array();
+	
 
-	var myHero = {};
-	var old_hero_pos = {};
+
 	// Create the canvas
 	var canvas = document.createElement("canvas");
 	var ctx = canvas.getContext("2d");
@@ -26,6 +26,7 @@ $(document).ready(function(){
 	}
 
 	function getCursorPosition(e) {
+	    /* returns Cell with .row and .column properties */
 	    var x;
 	    var y;
 	    if (e.pageX != undefined && e.pageY != undefined) {
@@ -39,16 +40,17 @@ $(document).ready(function(){
 
 	    x -= canvas.offsetLeft;
 	    y -= canvas.offsetTop;
-
 	    x = Math.min(x, canvas.width * gridBlockWidth);
 	    y = Math.min(y, canvas.height * gridBlockHeight);
-
 	    var cell = new Cell(Math.floor(y/gridBlockHeight), Math.floor(x/gridBlockWidth), x, y);
-
 	    console.log(cell);
-
-	    socket.emit('sendClick', {'cell': cell, 'old_hero_pos_x': old_hero_pos.x, 'old_hero_pos_y': old_hero_pos.y });
+	    socket.emit('sendClick', cell);
+	    //return cell;
 	}
+
+
+
+
 
 	//grid width and height
 	var bw = 440;
@@ -83,11 +85,6 @@ $(document).ready(function(){
 	};
 	bgImage.src = "background.png";
 
-	var bgHero = new Image();
-	bgHero.src = "hero.png";
-
-
-
 	function createHero(hero) {
 		// Hero image
 		hero.ready = false;
@@ -96,15 +93,57 @@ $(document).ready(function(){
 			hero.ready = true;
 		};
 		hero.image.src = "hero.png";
+		// Game objects
 		hero.speed = 256 // movement in pixels per second
 
 		return hero;
-	}
+	}	
 
-	// Draw heroes
+	// Handle keyboard controls
+	var keysDown = {};
+
+	addEventListener("keydown", function (e) {
+		keysDown[e.keyCode] = true;
+	}, false);
+
+	addEventListener("keyup", function (e) {
+		delete keysDown[e.keyCode];
+	}, false);
+
+	// Update game objects
+	var update = function (modifier) {
+		if (38 in keysDown) { // Player holding up
+			socket.emit('sendInput', {'key': 'up', 'modifier': modifier});
+		}
+		if (40 in keysDown) { // Player holding down
+			socket.emit('sendInput', {'key': 'down', 'modifier': modifier});
+		}
+		if (37 in keysDown) { // Player holding left
+			socket.emit('sendInput', {'key': 'left', 'modifier': modifier});
+		}
+		if (39 in keysDown) { // Player holding right
+			socket.emit('sendInput', {'key': 'right', 'modifier': modifier});
+		}
+	};
+
+	// Reset the game when the player catches a monster
+	var reset = function () {
+		for (var x = 0; x < heroes.length; x++) {
+			heroes[x].x = canvas.width / 2;
+			heroes[x].y = canvas.height / 2;
+		}
+		
+	};
+
+	// Draw everything
 	var render = function (heroes) {
+		//drawBoard();
 
-		ctx.drawImage(bgHero, myHero.x, myHero.y);
+		for (var i = 0; i < heroes.length; i++) { 
+			if (heroes[i].ready) {
+				ctx.drawImage(heroes[i].image, heroes[i].x, heroes[i].y);
+			}
+		}
 
 		// Score
 		ctx.fillStyle = "rgb(250, 250, 250)";
@@ -114,48 +153,10 @@ $(document).ready(function(){
 		ctx.fillText("Players online: " + heroes.length, 32, 32);
 	};
 
-
-	var moveHero = function(x, y, delta) {
-		myHero.x += x * delta;
-		myHero.y += y * delta;
-	}
-
-	var moveHero = function(x, y, delta) {
-
-
-		if (old_hero_pos.x > x) {
-			myHero.x -= x * delta;
-		}
-		else if (old_hero_pos.x < x) {
-			myHero.x += x * delta;
-		}
-
-		if (myHero.x == x) {
-
-			if (old_hero_pos.y > y) {
-				myHero.y -= y * delta;
-			}
-			else if (old_hero_pos.y < y) {
-				myHero.y += y * delta;
-			}
-
-		}
-	}
-
-	lastTime = (new Date()).getTime(),
-	currentTime = 0,
-	delta = 0;
-
-	// Cross-browser support for requestAnimationFrame
-	var w = window;
-	requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
-	canvas.addEventListener("click", getCursorPosition, false);
-
-	function gameLoop() {
-		requestAnimationFrame(gameLoop);
-
-		currentTime = (new Date()).getTime();
-		delta = (currentTime - lastTime) / 1000;
+	// The main game loop
+	var main = function () {
+		var now = Date.now();
+		var delta = now - then;
 
 		if (bgReady) {
 			ctx.drawImage(bgImage, 0, 0);
@@ -163,37 +164,41 @@ $(document).ready(function(){
 
 		drawBoard();
 
-		moveHero(myHero.x, myHero.y, delta);
+		update(delta / 1000);
 		render(heroes);
 
-		lastTime = currentTime;
-	}
+		then = now;
+		// Request to do this again ASAP
+		requestAnimationFrame(main);
+	};
+
+	// Cross-browser support for requestAnimationFrame
+	var w = window;
+	requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
+	canvas.addEventListener("click", getCursorPosition, false);
+	// Let's play this game!
+	var then = Date.now();
+	reset();
+	main();
 
 
-	gameLoop();
 
+	
+	var myHero = {};
 
 	var nickname = prompt("Entre com seu nick : ", "");
    	socket.emit('new player', {p: nickname});
 
    	socket.on('myHero', function (hero) {
-			myHero.x = hero.hero.x;
-			myHero.y = hero.hero.y;
-
-			old_hero_pos.x = hero.old_hero_pos.x;
-			old_hero_pos.y = hero.old_hero_pos.y;
+   		myHero = hero;
    	});
 
    	socket.on('update players', function (_p) {
-			heroes = Array();
-		  heroes.push(createHero(_p[0]));
-			myHero = createHero(_p[0]);
-	    render(heroes);
-   		/*heroes = Array();
+   		heroes = Array();
    		for (var i = 0; i < _p.length; i++) {
    			heroes.push(createHero(_p[i]));
    			render(heroes);
-   		}*/
+   		}
     });
 
 });

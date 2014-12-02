@@ -23,10 +23,10 @@ app.use(express.static(path.join(__dirname, 'tpl/css')));
 app.use(express.static(path.join(__dirname, 'tpl/gamejs')));
 
 app.get('/', function(req, res){
-  res.sendfile(__dirname + '/tpl/game.html'); 
+  res.sendfile(__dirname + '/tpl/game.html');
 });
 app.get('/game', function(req, res){
-  res.sendfile(__dirname + '/tpl/gamescreen.html'); 
+  res.sendfile(__dirname + '/tpl/gamescreen.html');
 });
 
 server.listen(app.get('port'), function(){
@@ -50,7 +50,7 @@ ChatServer = new ChatServer();
 console.log('Server created: ' + Server.server_id);
 
 io.sockets.on('connection', function (socket) {
-	 
+
    //ChatServer.emitMessages(io);
    var myHero = new Character();
 
@@ -67,7 +67,7 @@ io.sockets.on('connection', function (socket) {
     	SocketUtils.sendPlayers(io, Server.board.characters);
 
       //Send player info to client
-      socket.emit('myHero', myHero); 		      	
+      socket.emit('myHero', myHero);
     });
 
 
@@ -77,7 +77,7 @@ io.sockets.on('connection', function (socket) {
       console.log(data);
       Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
       socket.emit('myHero', myHero);
-      SocketUtils.sendPlayers(io, Server.board.characters); 
+      SocketUtils.sendPlayers(io, Server.board.characters);
     });*/
 
     socket.on('sendInput', function (data){
@@ -96,16 +96,16 @@ io.sockets.on('connection', function (socket) {
 
       Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
       socket.emit('myHero', myHero);
-      SocketUtils.sendPlayers(io, Server.board.characters); 
+      //SocketUtils.sendPlayers(io, Server.board.characters);
     });
 
     socket.on('sendClick', function (data) {
-      myHero.x = data.clickx;
-      myHero.y = data.clicky;
+      myHero.x = data.cell.clickx;
+      myHero.y = data.cell.clicky;
 
       Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
-      socket.emit('myHero', myHero);
-      SocketUtils.sendPlayers(io, Server.board.characters); 
+      socket.emit('myHero', {'hero': myHero, 'old_hero_pos_x': data.old_hero_pos_x, 'old_hero_pos_y': data.old_hero_pos_y});
+      //SocketUtils.sendPlayers(io, Server.board.characters);
     });
 
     socket.on('disconnect', function () {
@@ -124,7 +124,3 @@ io.sockets.on('connection', function (socket) {
 
 
 });
-
-
-
-
