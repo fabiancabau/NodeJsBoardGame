@@ -99,6 +99,15 @@ io.sockets.on('connection', function (socket) {
       SocketUtils.sendPlayers(io, Server.board.characters); 
     });
 
+    socket.on('sendClick', function (data) {
+      myHero.x = data.clickx;
+      myHero.y = data.clicky;
+
+      Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
+      socket.emit('myHero', myHero);
+      SocketUtils.sendPlayers(io, Server.board.characters); 
+    });
+
     socket.on('disconnect', function () {
       SocketUtils.removeFromSeek(socket.id, Server.board.seekCharacters);
     	SocketUtils.removeSocketFromList(socket.id, Server.board.characters);

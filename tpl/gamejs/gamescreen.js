@@ -1,13 +1,54 @@
 $(document).ready(function(){
 	var socket = io.connect();
 	var heroes = Array();
-	//GAME VARS
+	
+
+
 	// Create the canvas
 	var canvas = document.createElement("canvas");
 	var ctx = canvas.getContext("2d");
 	canvas.width = 512;
 	canvas.height = 480;
+
+
+	var gridBlockWidth = 40;
+	var gridBlockHeight = 40;
+
 	document.body.appendChild(canvas);
+
+
+
+	function Cell(row, column, clickx, clicky) {
+	    this.row = row;
+	    this.column = column;
+	    this.clickx = clickx;
+	    this.clicky = clicky;
+	}
+
+	function getCursorPosition(e) {
+	    /* returns Cell with .row and .column properties */
+	    var x;
+	    var y;
+	    if (e.pageX != undefined && e.pageY != undefined) {
+			x = e.pageX;
+			y = e.pageY;
+	    }
+	    else {
+			x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			y = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+	    }
+
+	    x -= canvas.offsetLeft;
+	    y -= canvas.offsetTop;
+	    x = Math.min(x, canvas.width * gridBlockWidth);
+	    y = Math.min(y, canvas.height * gridBlockHeight);
+	    var cell = new Cell(Math.floor(y/gridBlockHeight), Math.floor(x/gridBlockWidth), x, y);
+	    console.log(cell);
+	    socket.emit('sendClick', cell);
+	    //return cell;
+	}
+
+
 
 
 
@@ -21,13 +62,13 @@ $(document).ready(function(){
 	var ch = bh + (p*2) + 1;
 
 	function drawBoard(){
-	    for (var x = 0; x <= bw; x += 40) {
+	    for (var x = 0; x <= bw; x += gridBlockWidth) {
 	        ctx.moveTo(0.5 + x + p, p);
 	        ctx.lineTo(0.5 + x + p, bh + p);
 	    }
 
 
-	    for (var x = 0; x <= bh; x += 40) {
+	    for (var x = 0; x <= bh; x += gridBlockHeight) {
 	        ctx.moveTo(p, 0.5 + x + p);
 	        ctx.lineTo(bw + p, 0.5 + x + p);
 	    }
@@ -72,23 +113,15 @@ $(document).ready(function(){
 	// Update game objects
 	var update = function (modifier) {
 		if (38 in keysDown) { // Player holding up
-			//myHero.y -= myHero.speed * modifier;
-			//socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
 			socket.emit('sendInput', {'key': 'up', 'modifier': modifier});
 		}
 		if (40 in keysDown) { // Player holding down
-			//myHero.y += myHero.speed * modifier;
-			//socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
 			socket.emit('sendInput', {'key': 'down', 'modifier': modifier});
 		}
 		if (37 in keysDown) { // Player holding left
-			//myHero.x -= myHero.speed * modifier;
-			//socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
 			socket.emit('sendInput', {'key': 'left', 'modifier': modifier});
 		}
 		if (39 in keysDown) { // Player holding right
-			//myHero.x += myHero.speed * modifier;
-			//socket.emit('updateHeroPos', {'x': Math.round(myHero.x), 'y': Math.round(myHero.y), 'unique_id': myHero.unique_id});
 			socket.emit('sendInput', {'key': 'right', 'modifier': modifier});
 		}
 	};
@@ -98,9 +131,6 @@ $(document).ready(function(){
 		for (var x = 0; x < heroes.length; x++) {
 			heroes[x].x = canvas.width / 2;
 			heroes[x].y = canvas.height / 2;
-			// Throw the monster somewhere on the screen randomly
-			//monster.x = 32 + (Math.random() * (canvas.width - 64));
-			//monster.y = 32 + (Math.random() * (canvas.height - 64));
 		}
 		
 	};
@@ -145,7 +175,7 @@ $(document).ready(function(){
 	// Cross-browser support for requestAnimationFrame
 	var w = window;
 	requestAnimationFrame = w.requestAnimationFrame || w.webkitRequestAnimationFrame || w.msRequestAnimationFrame || w.mozRequestAnimationFrame;
-
+	canvas.addEventListener("click", getCursorPosition, false);
 	// Let's play this game!
 	var then = Date.now();
 	reset();
