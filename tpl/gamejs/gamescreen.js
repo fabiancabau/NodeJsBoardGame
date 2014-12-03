@@ -1,5 +1,6 @@
-	var game = new Phaser.Game(1280, 720, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
-
+	var game = new Phaser.Game(1728, 1344, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+	var socket = io.connect();
+	var heroes = Array();
 	function preload() {
 
 		//  You can fill the preloader with as many assets as your game requires
@@ -15,6 +16,28 @@
 
 
 
+	var x_blocks = 54
+	var y_blocks = 42
+
+	var block_width = 1728/x_blocks;
+	var block_height = 1344/y_blocks;
+
+	function Cell(row, column) {
+		this.row = row;
+		this.column = column;
+	}
+
+	function getCursorPosition(x, y) {
+		x -= game.canvas.offsetLeft;
+		y -= game.canvas.offsetTop;
+		x = Math.min(x, 1728 * block_width);
+		y = Math.min(y, 1344 * block_height);
+		var cell = new Cell(Math.floor(y/block_height), Math.floor(x/block_width));
+		console.log(cell);
+		//socket.emit('sendClick', cell);
+		//return cell;
+	}
+
 	var sprite;
 	var background;
 	var gotoX, gotoY = 0;
@@ -23,6 +46,7 @@
 	function create() {
 		gotoX = game.world.centerX;
 		gotoY = game.world.centerY;
+		mouseclicked = false;
 
 		//  To make the sprite move we need to enable Arcade Physics
 		game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -34,7 +58,7 @@
 		background.inputEnabled = true;
 
 		//	pixelPerfectClick is expensive but totally needed
-		game.input.pixelPerfectClick = true;
+		background.input.pixelPerfectClick = true;
 
 		//	Hand Cursor is nicer than normal, no? :)
 		background.input.useHandCursor = true;
@@ -50,10 +74,18 @@
 
 	function update () {
 
-		//On click, set the target X and Y
-		if (game.input.mousePointer.isDown) {
+
+		//	Check if the mouse is clicked
+		if (game.input.mousePointer.isUp) {
+			mouseclicked = false;
+		}
+
+		//	On click, set the target X and Y and set mouse clicked to true so you can't drag it around
+		if (game.input.mousePointer.isDown && !mouseclicked) {
+			mouseclicked = true;
 			gotoX = game.input.mousePointer.x;
 			gotoY = game.input.mousePointer.y;
+			getCursorPosition(gotoX, gotoY);
 		}
 
 		if (game.physics.arcade.distanceToXY(sprite, gotoX, gotoY) > 8) {
@@ -75,6 +107,6 @@
 
 		function render () {
 
-			game.debug.inputInfo(32, 32);
+			game.debug.inputInfo(16, 16);
 
 		}
