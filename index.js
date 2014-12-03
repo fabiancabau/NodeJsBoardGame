@@ -83,8 +83,8 @@ io.sockets.on('connection', function (socket) {
       SocketUtils.removeFromSeek(socket.id, Server.board.seekCharacters);
     	SocketUtils.removeSocketFromList(socket.id, Server.board.characters);
     	console.log('Character '+ socket.id + ' disconnected');
-    	SocketUtils.sendPlayers(io, Server.board.characters);
       io.sockets.emit('player-disconnected', socket.id);
+    	//SocketUtils.sendPlayers(io, Server.board.characters);
     });
 
     socket.on('receiveMessage', function (data) {
