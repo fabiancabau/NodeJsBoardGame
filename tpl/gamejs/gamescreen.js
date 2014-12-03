@@ -55,8 +55,10 @@
 		for (var x = 0; x  < heroes.length; x++) {
 			if (heroes[x].unique_id == data) {
 				heroes[x].sprite.destroy();
+				heroes[x].splice(x, 1);
 			}
 		}
+
 	});
 
 	socket.on('update-players-array', function(data){
@@ -70,11 +72,24 @@
 
 	});
 
-	socket.on('hero-update', function (data){
+	socket.on('update-players-array-socket', function(data){
+		heroes = Array();
+		for (var x = 0; x  < data.length; x++) {
+			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'phaser'));
+			heroes.push(heroclient);
+			heroes[heroes.length - 1].sprite.anchor.set(0.5);
+			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
+		}
+	});
 
-		console.log('receiving hero update');
-		console.log(data);
+	socket.on('add-new-player', function(data){
+			var heroclient = new HeroClient(data, game.add.sprite(data.x, data.y, 'phaser'));
+			heroes.push(heroclient);
+			heroes[heroes.length - 1].sprite.anchor.set(0.5);
+			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
+	});
 
+	socket.on('hero-update', function (data) {
 		for (var x = 0; x < heroes.length; x++) {
 			if (data.unique_id == heroes[x].unique_id) {
 				spriteToMove = heroes[x].sprite;
@@ -138,7 +153,9 @@
 		//	On click, set the target X and Y and set mouse clicked to true so you can't drag it around
 		if (game.input.mousePointer.isDown && !mouseclicked) {
 			mouseclicked = true;
+			console.log(heroes);
 			socket.emit('hero-move', {'x': game.input.mousePointer.x, 'y': game.input.mousePointer.y});
+			console.log(heroes);
 			//getCursorPosition(gotoX, gotoY);
 		}
 

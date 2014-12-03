@@ -50,6 +50,10 @@ function SocketUtils() {
 		io.sockets.emit('update-players-array', players);
 	}
 
+	SocketUtils.prototype.sendPlayersToSocket = function(socket, players) {
+		socket.emit('update-players-array-socket', players);
+	}
+
 
 }
 

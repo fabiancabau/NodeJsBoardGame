@@ -113,7 +113,7 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 			}
 		}
 
-		return found;	
+		return found;
 	}
 
 	Board.prototype._is_slot_free = function(slot) {
@@ -161,9 +161,11 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 
 	Board.prototype.moveCharacter = function(unique_id, x, y) {
 
-		var index = this.seekCharacters.indexOf(unique_id);
-		this.characters[index].x = x;
-		this.characters[index].y = y;
+		if (x != undefined) {
+			var index = this.seekCharacters.indexOf(unique_id);
+			this.characters[index].x = x;
+			this.characters[index].y = y;
+		}
 
 		return true;
 	}

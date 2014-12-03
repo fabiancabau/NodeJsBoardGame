@@ -53,6 +53,7 @@ io.sockets.on('connection', function (socket) {
 
    //ChatServer.emitMessages(io);
    var myHero = new Character();
+   SocketUtils.sendPlayersToSocket(socket, Server.board.characters);
 
     socket.on('new-player', function (data) {
       //Create a new character using user input
@@ -64,26 +65,7 @@ io.sockets.on('connection', function (socket) {
 
       myHero = Server.board._get_character_by_unique_id(socket.id);
       //Send message to clients with all players
-    	SocketUtils.sendPlayers(io, Server.board.characters);
-
-      //Send player info to client
-      //socket.emit('local-hero', myHero);
-    });
-
-
-    /*socket.on('updateHeroPos', function (data){
-      myHero.x = data.x;
-      myHero.y = data.y;
-      console.log(data);
-      Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
-      socket.emit('myHero', myHero);
-      SocketUtils.sendPlayers(io, Server.board.characters);
-    });*/
-
-    socket.on('sendInput', function (data){
-      Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
-      socket.emit('myHero', myHero);
-      SocketUtils.sendPlayers(io, Server.board.characters);
+    	io.sockets.emit('add-new-player', myHero);
     });
 
     socket.on('hero-move', function (data) {
