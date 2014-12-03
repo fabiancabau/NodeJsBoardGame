@@ -23,10 +23,10 @@ app.use(express.static(path.join(__dirname, 'tpl/css')));
 app.use(express.static(path.join(__dirname, 'tpl/gamejs')));
 
 app.get('/', function(req, res){
-  res.sendfile(__dirname + '/tpl/game.html'); 
+  res.sendfile(__dirname + '/tpl/game.html');
 });
 app.get('/game', function(req, res){
-  res.sendfile(__dirname + '/tpl/gamescreen.html'); 
+  res.sendfile(__dirname + '/tpl/gamescreen.html');
 });
 
 server.listen(app.get('port'), function(){
@@ -50,11 +50,11 @@ ChatServer = new ChatServer();
 console.log('Server created: ' + Server.server_id);
 
 io.sockets.on('connection', function (socket) {
-	 
+
    //ChatServer.emitMessages(io);
    var myHero = new Character();
 
-    socket.on('new player', function (data) {
+    socket.on('new-player', function (data) {
       //Create a new character using user input
 		  var new_character = Server.addUserToList(data, socket.id);
       //Add to server board
@@ -63,11 +63,11 @@ io.sockets.on('connection', function (socket) {
 		  Server.board.spawnCharacter(new_character, constants.TEAM_GOODGUYS);
 
       myHero = Server.board._get_character_by_unique_id(socket.id);
-      //Send message to clientes with all players
+      //Send message to clients with all players
     	SocketUtils.sendPlayers(io, Server.board.characters);
 
       //Send player info to client
-      socket.emit('myHero', myHero); 		      	
+      //socket.emit('local-hero', myHero);
     });
 
 
@@ -77,35 +77,24 @@ io.sockets.on('connection', function (socket) {
       console.log(data);
       Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
       socket.emit('myHero', myHero);
-      SocketUtils.sendPlayers(io, Server.board.characters); 
+      SocketUtils.sendPlayers(io, Server.board.characters);
     });*/
 
     socket.on('sendInput', function (data){
-      if (data.key == 'up') {
-        myHero.y -= myHero.speed * data.modifier;
-      }
-      if (data.key == 'down') {
-        myHero.y += myHero.speed * data.modifier;
-      }
-      if (data.key == 'left') {
-        myHero.x -= myHero.speed * data.modifier;
-      }
-      if (data.key == 'right') {
-        myHero.x += myHero.speed * data.modifier;
-      }
-
       Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
       socket.emit('myHero', myHero);
-      SocketUtils.sendPlayers(io, Server.board.characters); 
+      SocketUtils.sendPlayers(io, Server.board.characters);
     });
 
-    socket.on('sendClick', function (data) {
-      myHero.x = data.clickx;
-      myHero.y = data.clicky;
+    socket.on('hero-move', function (data) {
+      myHero.x = data.x;
+      myHero.y = data.y;
 
       Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
-      socket.emit('myHero', myHero);
-      SocketUtils.sendPlayers(io, Server.board.characters); 
+
+      console.log('emiting hero update');
+      io.sockets.emit('hero-update', myHero);
+      //SocketUtils.sendPlayers(io, Server.board.characters);
     });
 
     socket.on('disconnect', function () {
@@ -113,6 +102,7 @@ io.sockets.on('connection', function (socket) {
     	SocketUtils.removeSocketFromList(socket.id, Server.board.characters);
     	console.log('Character '+ socket.id + ' disconnected');
     	SocketUtils.sendPlayers(io, Server.board.characters);
+      io.sockets.emit('player-disconnected', socket.id);
     });
 
     socket.on('receiveMessage', function (data) {
@@ -124,7 +114,3 @@ io.sockets.on('connection', function (socket) {
 
 
 });
-
-
-
-

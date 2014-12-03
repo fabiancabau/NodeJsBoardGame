@@ -47,7 +47,7 @@ function SocketUtils() {
 
 
 	SocketUtils.prototype.sendPlayers = function(io, players) {
-		io.sockets.emit('update players', players);
+		io.sockets.emit('update-players-array', players);
 	}
 
 
