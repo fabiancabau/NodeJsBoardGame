@@ -54,7 +54,6 @@ io.sockets.on('connection', function (socket) {
    //ChatServer.emitMessages(io);
    var myHero = new Character();
 
-
     socket.on('new-player', function (data) {
       SocketUtils.sendPlayersToSocket(socket, Server.board.characters);
       //Create a new character using user input
@@ -63,8 +62,9 @@ io.sockets.on('connection', function (socket) {
 		  Server.board.addCharacter(new_character);
       //Spawn new character on a random location based on it's team
 		  Server.board.spawnCharacter(new_character, constants.TEAM_GOODGUYS);
-
       myHero = Server.board._get_character_by_unique_id(socket.id);
+
+      socket.emit('your-id', {'your_id': socket.id, 'player_turn_id': Server.getCurrentPlayerTurn()});
       //Send message to clients with all players
     	io.sockets.emit('add-new-player', myHero);
     });
@@ -75,8 +75,8 @@ io.sockets.on('connection', function (socket) {
 
       Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
 
-      console.log('emiting hero update');
       io.sockets.emit('hero-update', myHero);
+      io.sockets.emit('move-queue', Server.moveQueue(socket.id));
       //SocketUtils.sendPlayers(io, Server.board.characters);
     });
 

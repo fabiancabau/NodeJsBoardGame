@@ -1,10 +1,17 @@
 	var game = new Phaser.Game(1728, 1344, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+	var your_id = null;
 	var socket = io.connect();
 	var heroes = Array();
 	var gameHeroImages = Array();
 	var spriteToMove = null;
 	var background;
 	var gotoX, gotoY = 0;
+	var hero_id_turn = null;
+	var mouseclicked = false;
+
+	var styleTurnText = { font: "65px Arial", fill: "#ff0044", align: "center" };
+	var turnLabel;
+	var turnText = '';
 
 	function preload() {
 
@@ -42,12 +49,13 @@
 		this.column = column;
 	}
 
-	function HeroClient(data, sprite) {
+	function HeroClient(data, sprite, name_label) {
 		this.unique_id = data.unique_id;
 		this.sprite = sprite;
 		this.nickname = data.char_name;
 		this.x = data.x;
 		this.y = data.y;
+		this.name_label = name_label
 		//this.image = data.image;
 	}
 
@@ -75,9 +83,12 @@
 	socket.on('update-players-array', function(data){
 		heroes = Array();
 		for (var x = 0; x  < data.length; x++) {
-			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'));
+			var styleHeroName = { font: "32px Arial", fill: "#ff0044", wordWrap: true, wordWrapWidth: data[x].x, align: "center" };
+			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'), game.add.text(0, 0, data[x].nickname, styleHeroName));
 			heroes.push(heroclient);
 			heroes[heroes.length - 1].sprite.anchor.set(0.5);
+			heroes[heroes.length - 1].name_label.anchor.set(0.5);
+			console.log(heroes[heroes.length - 1].name_label);
 			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
 		}
 
@@ -85,27 +96,35 @@
 
 	socket.on('update-players-array-socket', function(data){
 		for (var x = 0; x  < data.length; x++) {
-			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'));
+			var styleHeroName = { font: "32px Arial", fill: "#ff0044", wordWrap: true, wordWrapWidth: data[x].x, align: "center" };
+			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'), game.add.text(0, 0, data[x].nickname, styleHeroName));
 			heroes.push(heroclient);
 			heroes[heroes.length - 1].sprite.anchor.set(0.5);
+			heroes[heroes.length - 1].name_label.anchor.set(0.5);
+			console.log(heroes[heroes.length - 1].name_label);
 			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
 		}
 		console.log(heroes);
 	});
 
 	socket.on('add-new-player', function(data){
-			var heroclient = new HeroClient(data, game.add.sprite(data.x, data.y, 'hero'));
-			heroes.push(heroclient);
-			heroes[heroes.length - 1].sprite.anchor.set(0.5);
-			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
+		//EXPERIMENTAL, ADICIONANDO NOME NO HERO
+		var styleHeroName = { font: "32px Arial", fill: "#ff0044", wordWrap: true, wordWrapWidth: data.x, align: "center" };
 
-			console.log(heroes);
+		var heroclient = new HeroClient(data, game.add.sprite(data.x, data.y, 'hero'), game.add.text(0, 0, data.nickname, styleHeroName));
+		heroes.push(heroclient);
+		heroes[heroes.length - 1].sprite.anchor.set(0.5);
+		heroes[heroes.length - 1].name_label.anchor.set(0.5);
+		console.log(heroes[heroes.length - 1].name_label);
+		game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
+
+		console.log(heroes);
 	});
 
 	socket.on('hero-update', function (data) {
 		for (var x = 0; x < heroes.length; x++) {
 			if (data.unique_id == heroes[x].unique_id) {
-				spriteToMove = heroes[x].sprite;
+				spriteToMove = heroes[x];
 				gotoX = data.x;
 				gotoY = data.y;
 				break;
@@ -113,11 +132,20 @@
 		}
 	});
 
-	//var sprite;
+	socket.on('your-id', function (data) {
+		your_id = data.your_id;
+		hero_id_turn = data.player_turn_id;
+		console.log(data);
+	});
 
+	socket.on('move-queue', function (data) {
+		hero_id_turn = data;
+		console.log('Turn mudou para: '+ hero_id_turn);
+	});
 
 
 	function create() {
+		mouseclicked = false;
 		//gotoX = game.world.centerX;
 		//gotoY = game.world.centerY;
 		//	Trying to make the game run even if screen is not focused
@@ -140,34 +168,50 @@
 
 		//	Hand Cursor is nicer than normal, no? :)
 		background.input.useHandCursor = true;
+
+
+		//	Added turn text
+		turnLabel = game.add.text(game.world.centerX, game.world.centerY-200, turnText, styleTurnText);
+		turnLabel.anchor.set(0.5, 0.5);
 	}
 
 	function update () {
+		if (game.input.mousePointer.isUp) {
+			mouseclicked = false;
+		}
 
-
-		//	On click, set the target X and Y and set mouse clicked to true so you can't drag it around
-		if (game.input.mousePointer.justPressed()) {
-			console.log(heroes);
-			socket.emit('hero-move', {'x': game.input.mousePointer.x, 'y': game.input.mousePointer.y});
-			console.log(heroes);
+		if (game.input.mousePointer.justPressed() && !mouseclicked) {
+			mouseclicked = true;
 			//getCursorPosition(gotoX, gotoY);
+			socket.emit('hero-move', {'x': game.input.mousePointer.x, 'y': game.input.mousePointer.y});
+
+		}
+
+
+		if (your_id == hero_id_turn) {
+			turnLabel.setText("Your turn");
+		}
+		else {
+			turnLabel.setText("Other player turn");
 		}
 
 
 		if (spriteToMove != null) {
-			if (game.physics.arcade.distanceToXY(spriteToMove, gotoX, gotoY) > 8) {
+			if (game.physics.arcade.distanceToXY(spriteToMove.sprite, gotoX, gotoY) > 8) {
 
-				if (game.physics.arcade.distanceToXY(spriteToMove, gotoX, spriteToMove.y) > 8) {
-					game.physics.arcade.moveToXY(spriteToMove, gotoX, spriteToMove.y, 200);
+				if (game.physics.arcade.distanceToXY(spriteToMove.sprite, gotoX, spriteToMove.sprite.y) > 8) {
+					spriteToMove.name_label.x = Math.floor(spriteToMove.sprite.x + spriteToMove.sprite.width / 2);
+					game.physics.arcade.moveToXY(spriteToMove.sprite, gotoX, spriteToMove.sprite.y, 200);
 				}
 
-				if (game.physics.arcade.distanceToXY(spriteToMove, spriteToMove.x, gotoY) > 8) {
-					game.physics.arcade.moveToXY(spriteToMove, spriteToMove.x, gotoY, 200);
+				if (game.physics.arcade.distanceToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY) > 8) {
+					spriteToMove.name_label.y = Math.floor(spriteToMove.y + spriteToMove.sprite.height / 2);
+					game.physics.arcade.moveToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY, 200);
 				}
 
 			}
 			else {
-				spriteToMove.body.velocity.set(0);
+				spriteToMove.sprite.body.velocity.set(0);
 				spriteToMove = null;
 			}
 		}
@@ -175,6 +219,8 @@
 	}
 
 		function render () {
+
+
 
 			game.debug.inputInfo(16, 16);
 
