@@ -53,9 +53,10 @@ io.sockets.on('connection', function (socket) {
 
    //ChatServer.emitMessages(io);
    var myHero = new Character();
-   SocketUtils.sendPlayersToSocket(socket, Server.board.characters);
+
 
     socket.on('new-player', function (data) {
+      SocketUtils.sendPlayersToSocket(socket, Server.board.characters);
       //Create a new character using user input
 		  var new_character = Server.addUserToList(data, socket.id);
       //Add to server board

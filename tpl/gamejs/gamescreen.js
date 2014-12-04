@@ -1,7 +1,7 @@
 	var game = new Phaser.Game(1728, 1344, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 	var socket = io.connect();
 	var heroes = Array();
-
+	var gameHeroImages = Array();
 	var spriteToMove = null;
 	var background;
 	var gotoX, gotoY = 0;
@@ -14,11 +14,21 @@
 		//  string by which we'll identify the image later in our code.
 
 		//  The second parameter is the URL of the image (relative)
-		game.load.image('phaser', 'hero.png');
+		game.load.image('hero', 'hero.png')
+		gameHeroImages.push('hero');
+		game.load.image('hero2', 'hero2.png')
+		gameHeroImages.push('hero2');
+
+
 		game.load.image('background', 'map.jpg');
 
 	}
 
+
+	function getRandomHeroImage(gameHeroImages) {
+		var random = Math.floor((Math.random() * (gameHeroImages.length) + 0));
+		return gameHeroImages[random];
+	}
 
 
 	var x_blocks = 54
@@ -38,6 +48,7 @@
 		this.nickname = data.char_name;
 		this.x = data.x;
 		this.y = data.y;
+		//this.image = data.image;
 	}
 
 	function getCursorPosition(x, y) {
@@ -64,7 +75,7 @@
 	socket.on('update-players-array', function(data){
 		heroes = Array();
 		for (var x = 0; x  < data.length; x++) {
-			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'phaser'));
+			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'));
 			heroes.push(heroclient);
 			heroes[heroes.length - 1].sprite.anchor.set(0.5);
 			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
@@ -73,20 +84,22 @@
 	});
 
 	socket.on('update-players-array-socket', function(data){
-		heroes = Array();
 		for (var x = 0; x  < data.length; x++) {
-			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'phaser'));
+			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'));
 			heroes.push(heroclient);
 			heroes[heroes.length - 1].sprite.anchor.set(0.5);
 			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
 		}
+		console.log(heroes);
 	});
 
 	socket.on('add-new-player', function(data){
-			var heroclient = new HeroClient(data, game.add.sprite(data.x, data.y, 'phaser'));
+			var heroclient = new HeroClient(data, game.add.sprite(data.x, data.y, 'hero'));
 			heroes.push(heroclient);
 			heroes[heroes.length - 1].sprite.anchor.set(0.5);
 			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
+
+			console.log(heroes);
 	});
 
 	socket.on('hero-update', function (data) {
@@ -95,9 +108,6 @@
 				spriteToMove = heroes[x].sprite;
 				gotoX = data.x;
 				gotoY = data.y;
-
-				console.log('Sprite to move: ' + heroes[x].nickname);
-				console.log('Moving to: ' + gotoX + '-' + gotoY );
 				break;
 			}
 		}
@@ -110,16 +120,14 @@
 	function create() {
 		//gotoX = game.world.centerX;
 		//gotoY = game.world.centerY;
-		mouseclicked = false;
+		//	Trying to make the game run even if screen is not focused
+		game.stage.disableVisibilityChange = true;
 
 		var nickname = 'Hero '+ (heroes.length + 1);
 		socket.emit('new-player', {'nickname': nickname});
 
 		//  To make the sprite move we need to enable Arcade Physics
 		game.physics.startSystem(Phaser.Physics.ARCADE);
-
-		//
-		game.stage.disableVisibilityChange = true;
 
 		//	Create a background image
 		background = game.add.sprite(0, 0, 'background');
@@ -132,27 +140,13 @@
 
 		//	Hand Cursor is nicer than normal, no? :)
 		background.input.useHandCursor = true;
-
-		//	Add the hero sprite to the world (we're gonna use a for loop to add N heroes)
-		//sprite = game.add.sprite(game.world.centerX, game.world.centerY, 'phaser');
-		//sprite.anchor.set(0.5);
-
-		//  And enable the Sprite to have a physics body:
-
-
 	}
 
 	function update () {
 
 
-		//	Check if the mouse is clicked
-		if (game.input.mousePointer.isUp) {
-			mouseclicked = false;
-		}
-
 		//	On click, set the target X and Y and set mouse clicked to true so you can't drag it around
-		if (game.input.mousePointer.isDown && !mouseclicked) {
-			mouseclicked = true;
+		if (game.input.mousePointer.justPressed()) {
 			console.log(heroes);
 			socket.emit('hero-move', {'x': game.input.mousePointer.x, 'y': game.input.mousePointer.y});
 			console.log(heroes);
