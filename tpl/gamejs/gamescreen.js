@@ -13,6 +13,9 @@
 	var turnLabel;
 	var turnText = '';
 
+
+	var styleHeroName = { font: "14px Arial", fill: "#FFFFFF", wordWrap: true, wordWrapWidth: 60, align: "center" };
+
 	function preload() {
 
 		//  You can fill the preloader with as many assets as your game requires
@@ -74,48 +77,41 @@
 		for (var x = 0; x  < heroes.length; x++) {
 			if (heroes[x].unique_id == data) {
 				heroes[x].sprite.destroy();
+				heroes[x].name_label.destroy();
 				heroes[x].splice(x, 1);
 			}
 		}
 
 	});
 
-	socket.on('update-players-array', function(data){
+	socket.on('update-players-array', function (data){
 		heroes = Array();
 		for (var x = 0; x  < data.length; x++) {
-			var styleHeroName = { font: "32px Arial", fill: "#ff0044", wordWrap: true, wordWrapWidth: data[x].x, align: "center" };
 			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'), game.add.text(0, 0, data[x].nickname, styleHeroName));
 			heroes.push(heroclient);
 			heroes[heroes.length - 1].sprite.anchor.set(0.5);
 			heroes[heroes.length - 1].name_label.anchor.set(0.5);
-			console.log(heroes[heroes.length - 1].name_label);
 			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
 		}
 
 	});
 
-	socket.on('update-players-array-socket', function(data){
+	socket.on('update-players-array-socket', function (data){
 		for (var x = 0; x  < data.length; x++) {
-			var styleHeroName = { font: "32px Arial", fill: "#ff0044", wordWrap: true, wordWrapWidth: data[x].x, align: "center" };
-			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'), game.add.text(0, 0, data[x].nickname, styleHeroName));
+			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'), game.add.text(0, 0, data[x].char_name, styleHeroName));
 			heroes.push(heroclient);
 			heroes[heroes.length - 1].sprite.anchor.set(0.5);
 			heroes[heroes.length - 1].name_label.anchor.set(0.5);
-			console.log(heroes[heroes.length - 1].name_label);
 			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
 		}
-		console.log(heroes);
 	});
 
-	socket.on('add-new-player', function(data){
+	socket.on('add-new-player', function (data){
 		//EXPERIMENTAL, ADICIONANDO NOME NO HERO
-		var styleHeroName = { font: "32px Arial", fill: "#ff0044", wordWrap: true, wordWrapWidth: data.x, align: "center" };
-
-		var heroclient = new HeroClient(data, game.add.sprite(data.x, data.y, 'hero'), game.add.text(0, 0, data.nickname, styleHeroName));
+		var heroclient = new HeroClient(data, game.add.sprite(data.x, data.y, 'hero'), game.add.text(0, 0, data.char_name, styleHeroName));
 		heroes.push(heroclient);
 		heroes[heroes.length - 1].sprite.anchor.set(0.5);
 		heroes[heroes.length - 1].name_label.anchor.set(0.5);
-		console.log(heroes[heroes.length - 1].name_label);
 		game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
 
 		console.log(heroes);
@@ -151,7 +147,7 @@
 		//	Trying to make the game run even if screen is not focused
 		game.stage.disableVisibilityChange = true;
 
-		var nickname = 'Hero '+ (heroes.length + 1);
+		var nickname = 'Hero '+ Math.floor((Math.random() * 100));
 		socket.emit('new-player', {'nickname': nickname});
 
 		//  To make the sprite move we need to enable Arcade Physics
@@ -188,24 +184,38 @@
 		}
 
 
-		if (your_id == hero_id_turn) {
+		if (your_id == hero_id_turn && turnLabel.text != "Your turn") {
 			turnLabel.setText("Your turn");
 		}
-		else {
+		else if (your_id != hero_id_turn && turnLabel.text != "Other player turn") {
 			turnLabel.setText("Other player turn");
 		}
 
 
+
+		if (heroes.length > 0) {
+
+			for (var x = 0; x < heroes.length; x++) {
+				heroes[x].name_label.x = Math.floor((heroes[x].sprite.x + heroes[x].sprite.width / 2)-13);
+				heroes[x].name_label.y = Math.floor((heroes[x].sprite.y + heroes[x].sprite.height / 2) - 50);
+			}
+
+		}
+
+
 		if (spriteToMove != null) {
+			//text.x = Math.floor((spriteToMove.sprite.x + spriteToMove.sprite.width / 2)-13);
+    		//text.y = Math.floor((spriteToMove.sprite.y + spriteToMove.sprite.height / 2) - 50);
+
 			if (game.physics.arcade.distanceToXY(spriteToMove.sprite, gotoX, gotoY) > 8) {
 
 				if (game.physics.arcade.distanceToXY(spriteToMove.sprite, gotoX, spriteToMove.sprite.y) > 8) {
-					spriteToMove.name_label.x = Math.floor(spriteToMove.sprite.x + spriteToMove.sprite.width / 2);
+					//spriteToMove.name_label.x = Math.floor(spriteToMove.sprite.x + spriteToMove.sprite.width / 2);
 					game.physics.arcade.moveToXY(spriteToMove.sprite, gotoX, spriteToMove.sprite.y, 200);
 				}
 
 				if (game.physics.arcade.distanceToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY) > 8) {
-					spriteToMove.name_label.y = Math.floor(spriteToMove.y + spriteToMove.sprite.height / 2);
+					//spriteToMove.name_label.y = Math.floor(spriteToMove.y + spriteToMove.sprite.height / 2);
 					game.physics.arcade.moveToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY, 200);
 				}
 
@@ -219,9 +229,6 @@
 	}
 
 		function render () {
-
-
-
 			game.debug.inputInfo(16, 16);
 
 		}
