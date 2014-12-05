@@ -1,4 +1,5 @@
 	var game = new Phaser.Game(1728, 1344, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
+
 	var your_id = null;
 	var socket = io.connect();
 	var heroes = Array();
@@ -160,6 +161,8 @@
 		var nickname = localStorage.getItem("nickname");
 		socket.emit('new-player', {'nickname': nickname});
 
+
+		game.plugins.add(Phaser.Plugin.SaveCPU);
 		//  To make the sprite move we need to enable Arcade Physics
 		game.physics.startSystem(Phaser.Physics.ARCADE);
 
