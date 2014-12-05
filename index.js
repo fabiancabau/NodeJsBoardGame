@@ -53,11 +53,12 @@ io.sockets.on('connection', function (socket) {
 
    //ChatServer.emitMessages(io);
    var myHero = new Character();
+   myHero.heroImgPos = myHero.getRandomHeroImage();
 
     socket.on('new-player', function (data) {
       SocketUtils.sendPlayersToSocket(socket, Server.board.characters);
       //Create a new character using user input
-		  var new_character = Server.addUserToList(data, socket.id);
+		  var new_character = Server.addUserToList(data, socket.id, myHero.heroImgPos);
       //Add to server board
 		  Server.board.addCharacter(new_character);
       //Spawn new character on a random location based on it's team

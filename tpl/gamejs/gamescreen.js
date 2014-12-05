@@ -14,6 +14,10 @@
 	var turnText = '';
 
 
+
+
+
+
 	var styleHeroName = { font: "14px Arial", fill: "#FFFFFF", wordWrap: true, wordWrapWidth: 60, align: "center" };
 
 	function preload() {
@@ -25,22 +29,14 @@
 		//  string by which we'll identify the image later in our code.
 
 		//  The second parameter is the URL of the image (relative)
-		game.load.image('hero', 'hero.png')
-		gameHeroImages.push('hero');
-		game.load.image('hero2', 'hero2.png')
-		gameHeroImages.push('hero2');
+		//game.load.image('hero', 'hero.png')
+		//gameHeroImages.push('hero');
+		game.load.spritesheet('walkinghero', 'sprites.png', 48, 64, 96);
 
 
 		game.load.image('background', 'map.jpg');
 
 	}
-
-
-	function getRandomHeroImage(gameHeroImages) {
-		var random = Math.floor((Math.random() * (gameHeroImages.length)) + 0);
-		return gameHeroImages[random];
-	}
-
 
 	var x_blocks = 54
 	var y_blocks = 42
@@ -53,14 +49,15 @@
 		this.column = column;
 	}
 
-	function HeroClient(data, sprite, name_label) {
+	function HeroClient(data, sprite, name_label, heroImgPos) {
 		this.unique_id = data.unique_id;
 		this.sprite = sprite;
-		this.nickname = data.char_name;
+		this.nickname = data.nickname;
 		this.x = data.x;
 		this.y = data.y;
-		this.name_label = name_label
-		//this.image = data.image;
+		this.name_label = name_label;
+		this.facing = 2;
+		this.heroImgPos = heroImgPos;
 	}
 
 	function getCursorPosition(x, y) {
@@ -88,9 +85,13 @@
 	socket.on('update-players-array', function (data){
 		heroes = Array();
 		for (var x = 0; x  < data.length; x++) {
-			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'), game.add.text(0, 0, data[x].nickname, styleHeroName));
+			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'walkinghero', data[x].heroImgPos.sprite_initial), game.add.text(0, 0, data[x].nickname, styleHeroName), data[x].heroImgPos);
 			heroes.push(heroclient);
 			heroes[heroes.length - 1].sprite.anchor.set(0.5);
+			heroes[heroes.length - 1].sprite.animations.add('walk-down', heroes[heroes.length - 1].heroImgPos.walk_down);
+			heroes[heroes.length - 1].sprite.animations.add('walk-left', heroes[heroes.length - 1].heroImgPos.walk_left);
+			heroes[heroes.length - 1].sprite.animations.add('walk-right', heroes[heroes.length - 1].heroImgPos.walk_right);
+			heroes[heroes.length - 1].sprite.animations.add('walk-up', heroes[heroes.length - 1].heroImgPos.walk_up);
 			heroes[heroes.length - 1].name_label.anchor.set(0.5);
 			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
 		}
@@ -99,19 +100,26 @@
 
 	socket.on('update-players-array-socket', function (data){
 		for (var x = 0; x  < data.length; x++) {
-			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'hero'), game.add.text(0, 0, data[x].char_name, styleHeroName));
+			var heroclient = new HeroClient(data[x], game.add.sprite(data[x].x, data[x].y, 'walkinghero', data[x].heroImgPos.sprite_initial), game.add.text(0, 0, data[x].nickname, styleHeroName), data[x].heroImgPos);
 			heroes.push(heroclient);
 			heroes[heroes.length - 1].sprite.anchor.set(0.5);
+			heroes[heroes.length - 1].sprite.animations.add('walk-down', heroes[heroes.length - 1].heroImgPos.walk_down);
+			heroes[heroes.length - 1].sprite.animations.add('walk-left', heroes[heroes.length - 1].heroImgPos.walk_left);
+			heroes[heroes.length - 1].sprite.animations.add('walk-right', heroes[heroes.length - 1].heroImgPos.walk_right);
+			heroes[heroes.length - 1].sprite.animations.add('walk-up', heroes[heroes.length - 1].heroImgPos.walk_up);
 			heroes[heroes.length - 1].name_label.anchor.set(0.5);
 			game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
 		}
 	});
 
 	socket.on('add-new-player', function (data){
-		//EXPERIMENTAL, ADICIONANDO NOME NO HERO
-		var heroclient = new HeroClient(data, game.add.sprite(data.x, data.y, 'hero'), game.add.text(0, 0, data.char_name, styleHeroName));
+		var heroclient = new HeroClient(data, game.add.sprite(data.x, data.y, 'walkinghero', data.heroImgPos.sprite_initial), game.add.text(0, 0, data.nickname, styleHeroName), data.heroImgPos);
 		heroes.push(heroclient);
 		heroes[heroes.length - 1].sprite.anchor.set(0.5);
+		heroes[heroes.length - 1].sprite.animations.add('walk-down', heroes[heroes.length - 1].heroImgPos.walk_down);
+		heroes[heroes.length - 1].sprite.animations.add('walk-left', heroes[heroes.length - 1].heroImgPos.walk_left);
+		heroes[heroes.length - 1].sprite.animations.add('walk-right', heroes[heroes.length - 1].heroImgPos.walk_right);
+		heroes[heroes.length - 1].sprite.animations.add('walk-up', heroes[heroes.length - 1].heroImgPos.walk_up);
 		heroes[heroes.length - 1].name_label.anchor.set(0.5);
 		game.physics.arcade.enable(heroes[heroes.length - 1].sprite);
 
@@ -143,9 +151,6 @@
 
 	function create() {
 		mouseclicked = false;
-		//gotoX = game.world.centerX;
-		//gotoY = game.world.centerY;
-		//	Trying to make the game run even if screen is not focused
 
 		if (localStorage.getItem("nickname") == '' || localStorage.getItem("nickname") == null) {
 			var nick = prompt('Enter your nickname');
@@ -185,7 +190,6 @@
 			mouseclicked = true;
 			//getCursorPosition(gotoX, gotoY);
 			socket.emit('hero-move', {'x': game.input.mousePointer.x, 'y': game.input.mousePointer.y});
-
 		}
 
 
@@ -201,31 +205,58 @@
 		if (heroes.length > 0) {
 
 			for (var x = 0; x < heroes.length; x++) {
-				heroes[x].name_label.x = Math.floor((heroes[x].sprite.x + heroes[x].sprite.width / 2)-13);
-				heroes[x].name_label.y = Math.floor((heroes[x].sprite.y + heroes[x].sprite.height / 2) - 50);
+				heroes[x].name_label.x = Math.floor((heroes[x].sprite.x + heroes[x].sprite.width / 2) - 22);
+				heroes[x].name_label.y = Math.floor((heroes[x].sprite.y + heroes[x].sprite.height / 2) - 60);
 			}
 
 		}
 
 
 		if (spriteToMove != null) {
-			//text.x = Math.floor((spriteToMove.sprite.x + spriteToMove.sprite.width / 2)-13);
-    		//text.y = Math.floor((spriteToMove.sprite.y + spriteToMove.sprite.height / 2) - 50);
 
+			console.log(spriteToMove.facing);
+
+			if (spriteToMove.facing == 0) {
+				spriteToMove.sprite.animations.play('walk-up', 20, true);
+			}
+			if (spriteToMove.facing == 1) {
+				spriteToMove.sprite.animations.play('walk-right', 20, true);
+			}
+			if (spriteToMove.facing == 2) {
+				spriteToMove.sprite.animations.play('walk-down', 20, true);
+			}
+			if (spriteToMove.facing == 3) {
+				spriteToMove.sprite.animations.play('walk-left', 20, true);
+			}
+
+			//spriteToMove.sprite.animations.play('walk-down', 20, true);
 			if (game.physics.arcade.distanceToXY(spriteToMove.sprite, gotoX, gotoY) > 8) {
 
 				if (game.physics.arcade.distanceToXY(spriteToMove.sprite, gotoX, spriteToMove.sprite.y) > 8) {
-					//spriteToMove.name_label.x = Math.floor(spriteToMove.sprite.x + spriteToMove.sprite.width / 2);
-					game.physics.arcade.moveToXY(spriteToMove.sprite, gotoX, spriteToMove.sprite.y, 250);
-				}
+					game.physics.arcade.moveToXY(spriteToMove.sprite, gotoX, spriteToMove.sprite.y, 100);
 
-				if (game.physics.arcade.distanceToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY) > 8) {
-					//spriteToMove.name_label.y = Math.floor(spriteToMove.y + spriteToMove.sprite.height / 2);
-					game.physics.arcade.moveToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY,250);
+					if (gotoX > spriteToMove.sprite.x) {
+						spriteToMove.facing = 1;
+					}
+					if (gotoX < spriteToMove.sprite.x) {
+						spriteToMove.facing = 3;
+					}
+				}
+				else if (game.physics.arcade.distanceToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY) > 8) {
+					game.physics.arcade.moveToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY,100);
+
+					if (gotoY > spriteToMove.sprite.y) {
+						spriteToMove.facing = 2;
+					}
+					if (gotoY < spriteToMove.sprite.y) {
+						spriteToMove.facing = 0;
+					}
+
 				}
 
 			}
 			else {
+				spriteToMove.sprite.animations.stop(null, true);
 				spriteToMove.sprite.body.velocity.set(0);
 				spriteToMove = null;
 			}

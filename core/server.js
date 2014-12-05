@@ -8,9 +8,10 @@ function Server() {
 	this.board = new Board(1748, 1344, 5, 0);
 	this.turnQueue = Array();
 
-	Server.prototype.addUserToList = function(data, socket_id) {
+	Server.prototype.addUserToList = function(data, socket_id, heroImgPos) {
 		var Character = require('./character');
-		var new_character = new Character(socket_id, data.nickname, 0, 0);
+		var new_character = new Character(socket_id, data.nickname, 0, 0, heroImgPos);
+		console.log(new_character);
 		this.user_list.push(new_character);
 
 		this.addUserToTurnQueue(socket_id);
