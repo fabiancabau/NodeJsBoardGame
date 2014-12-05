@@ -17,7 +17,8 @@
 	var styleHeroName = { font: "14px Arial", fill: "#FFFFFF", wordWrap: true, wordWrapWidth: 60, align: "center" };
 
 	function preload() {
-
+		game.stage.disableVisibilityChange = true;
+		game.time.advancedTiming = true;
 		//  You can fill the preloader with as many assets as your game requires
 
 		//  Here we are loading an image. The first parameter is the unique
@@ -36,7 +37,7 @@
 
 
 	function getRandomHeroImage(gameHeroImages) {
-		var random = Math.floor((Math.random() * (gameHeroImages.length) + 0));
+		var random = Math.floor((Math.random() * (gameHeroImages.length)) + 0);
 		return gameHeroImages[random];
 	}
 
@@ -145,9 +146,13 @@
 		//gotoX = game.world.centerX;
 		//gotoY = game.world.centerY;
 		//	Trying to make the game run even if screen is not focused
-		game.stage.disableVisibilityChange = true;
 
-		var nickname = 'Hero '+ Math.floor((Math.random() * 100));
+		if (localStorage.getItem("nickname") == '' || localStorage.getItem("nickname") == null) {
+			var nick = prompt('Enter your nickname');
+			localStorage.setItem("nickname", nick);
+		}
+
+		var nickname = localStorage.getItem("nickname");
 		socket.emit('new-player', {'nickname': nickname});
 
 		//  To make the sprite move we need to enable Arcade Physics
@@ -211,12 +216,12 @@
 
 				if (game.physics.arcade.distanceToXY(spriteToMove.sprite, gotoX, spriteToMove.sprite.y) > 8) {
 					//spriteToMove.name_label.x = Math.floor(spriteToMove.sprite.x + spriteToMove.sprite.width / 2);
-					game.physics.arcade.moveToXY(spriteToMove.sprite, gotoX, spriteToMove.sprite.y, 200);
+					game.physics.arcade.moveToXY(spriteToMove.sprite, gotoX, spriteToMove.sprite.y, 250);
 				}
 
 				if (game.physics.arcade.distanceToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY) > 8) {
 					//spriteToMove.name_label.y = Math.floor(spriteToMove.y + spriteToMove.sprite.height / 2);
-					game.physics.arcade.moveToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY, 200);
+					game.physics.arcade.moveToXY(spriteToMove.sprite, spriteToMove.sprite.x, gotoY,250);
 				}
 
 			}
@@ -229,6 +234,5 @@
 	}
 
 		function render () {
-			game.debug.inputInfo(16, 16);
-
+			game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
 		}
