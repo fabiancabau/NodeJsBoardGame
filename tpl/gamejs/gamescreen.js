@@ -35,6 +35,9 @@
 
 	Hero.prototype.update = function() {
 
+		this.name_label.x = Math.floor((this.x + this.width / 2) - 22);
+		this.name_label.y = Math.floor((this.y + this.height / 2) - 60);
+
 		if (this.moving == true) {
 
 			if (this.facing == 0) {
@@ -55,7 +58,6 @@
 			}
 
 
-			
 			if (game.physics.arcade.distanceToXY(this, this.next_x, this.next_y) > 15) {
 
 				if (game.physics.arcade.distanceToXY(this, this.next_x, this.y) > 15) {
@@ -94,8 +96,7 @@
 
 
 		}
-	    //  Automatically called by World.update
-	    //this.angle += 0.2;
+
 
 	};
 
