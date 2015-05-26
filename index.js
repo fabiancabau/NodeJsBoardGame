@@ -1,21 +1,13 @@
-var express = require('express')
-  , http = require('http')
-  , path = require('path');
+var express = require('express');
 
 var app = express();
-var server = http.createServer(app);
 
-app.configure(function(){
-  app.set('port', process.env.PORT || 3000);
-  app.set('views', __dirname + '/views');
-  app.set('view engine', 'jade');
-  app.use(express.favicon());
-  //app.use(express.logger('dev'));
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(app.router);
-  app.use(express.static(path.join(__dirname, 'public')));
-});
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
+var path = require('path');
+
+
+var port = process.env.PORT || 5001;
 
 app.use(express.static(path.join(__dirname, 'core')));
 app.use(express.static(path.join(__dirname, 'tpl/images')));
@@ -23,26 +15,22 @@ app.use(express.static(path.join(__dirname, 'tpl/css')));
 app.use(express.static(path.join(__dirname, 'tpl/gamejs')));
 
 app.get('/', function(req, res){
-  res.sendfile(__dirname + '/tpl/game.html');
+  res.sendFile(__dirname + '/tpl/game.html');
 });
 app.get('/game', function(req, res){
-  res.sendfile(__dirname + '/tpl/gamescreen.html');
+  res.sendFile(__dirname + '/tpl/gamescreen.html');
 });
 
-server.listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
+server.listen(port, function(){
+  console.log("Express server listening on port " + port);
 });
-
 
 //Requires
 var constants = require('./core/constants');
-var io = require("socket.io").listen(server);
 var Character = require('./core/character');
-
 var SocketUtils = require('./core/socketutils');
 var Server = require('./core/server');
 Server = new Server();
-
 var ChatServer = require('./core/chat');
 ChatServer = new ChatServer();
 
@@ -67,6 +55,7 @@ io.sockets.on('connection', function (socket) {
 
       socket.emit('your-id', {'your_id': socket.id, 'player_turn_id': Server.getCurrentPlayerTurn()});
       //Send message to clients with all players
+      console.log(myHero);
     	io.sockets.emit('add-new-player', myHero);
     });
 
@@ -75,9 +64,9 @@ io.sockets.on('connection', function (socket) {
       myHero.y = data.y;
 
       Server.board.moveCharacter(myHero.unique_id, myHero.x, myHero.y);
-
+      console.log(myHero);
       io.sockets.emit('hero-update', myHero);
-      io.sockets.emit('move-queue', Server.moveQueue(socket.id));
+      //io.sockets.emit('move-queue', Server.moveQueue(socket.id));
       //SocketUtils.sendPlayers(io, Server.board.characters);
     });
 

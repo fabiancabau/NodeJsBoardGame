@@ -129,6 +129,9 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 		var max_x, max_y = 0;
 		var min_x, min_y = 0;
 
+		console.log('SpawnCharacter');
+		console.log(character);
+
 		if (side == constants.TEAM_GOODGUYS) {
 			max_x = (this.size_x/2) - 1;
 			max_y = (this.size_y/2) - 1;
@@ -151,7 +154,7 @@ function Board(size_x, size_y, max_characters, active_characters_count) {
 			character.x = rand_x;
 			character.y = rand_y;
 			this.boardBody[rand_x][rand_y] = character
-			console.log('Spawned character ' + character.char_name + ' on position ' + rand_x + ', ' + rand_y);
+			console.log('Spawned character ' + character.nickname + ' on position ' + rand_x + ', ' + rand_y);
 		}
 		else {
 			console.log('Character already on board.')
