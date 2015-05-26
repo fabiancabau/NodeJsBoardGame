@@ -1,5 +1,6 @@
 	var styleHeroName = { font: "14px Arial", fill: "#FFFFFF", wordWrap: true, wordWrapWidth: 60, align: "center" };
 
+
 	Hero = function (game, unique_id, nickname, x, y, facing, heroImgPos) {
 
 	    Phaser.Sprite.call(this, game, x, y, 'walkinghero');
@@ -11,9 +12,12 @@
 		this.name_label = game.add.text(0, 0, this.nickname, styleHeroName);
 		this.facing = facing;
 		this.heroImgPos = heroImgPos;
+		this.moving = false;
+
+		this.next_x = 0;
+		this.next_y = 0;
+
 	    this.anchor.setTo(0.5);
-
-
 
 		this.animations.add('walk-down', this.heroImgPos.walk_down);
 		this.animations.add('walk-left', this.heroImgPos.walk_left);
@@ -31,9 +35,67 @@
 
 	Hero.prototype.update = function() {
 
+		if (this.moving == true) {
 
+			if (this.facing == 0) {
+				this.animations.play('walk-up', 20, true);
+				console.log('walking up');
+			}
+			if (this.facing == 1) {
+				this.animations.play('walk-right', 20, true);
+				console.log('walking right');
+			}
+			if (this.facing == 2) {
+				this.animations.play('walk-down', 20, true);
+				console.log('walking down');
+			}
+			if (this.facing == 3) {
+				this.animations.play('walk-left', 20, true);
+				console.log('walking left');
+			}
+
+
+			
+			if (game.physics.arcade.distanceToXY(this, this.next_x, this.next_y) > 15) {
+
+				if (game.physics.arcade.distanceToXY(this, this.next_x, this.y) > 15) {
+					game.physics.arcade.moveToXY(this, this.next_x, this.y, 100);
+
+					if (this.next_x > this.x) {
+						this.facing = 1;
+					}
+					if (this.next_x < this.x) {
+						this.facing = 3;
+					}
+				}
+				else if (game.physics.arcade.distanceToXY(this, this.x, this.next_y) > 15) {
+					game.physics.arcade.moveToXY(this, this.x, this.next_y, 100);
+
+					if (this.next_y > this.y) {
+						this.facing = 2;
+					}
+					if (this.next_y < this.y) {
+						this.facing = 0;
+					}
+
+				}
+
+			}
+			else {
+				this.animations.stop(null, true);
+				this.body.velocity.set(0);
+				this.moving = false;
+				this.next_x = 0;
+				this.next_y = 0;
+				console.log('Stopped Walking');
+				console.log(this);
+
+			}
+
+
+		}
 	    //  Automatically called by World.update
-	    //this.angle += this.rotateSpeed;
+	    //this.angle += 0.2;
 
 	};
 
@@ -74,8 +136,8 @@
 
 	}
 
-	var x_blocks = 54
-	var y_blocks = 42
+	var x_blocks = 54;
+	var y_blocks = 42;
 
 	var block_width = 1728/x_blocks;
 	var block_height = 1344/y_blocks;
@@ -154,6 +216,11 @@
 			console.log(heroes[x]);
 
 			if (data.unique_id == heroes[x].unique_id) {
+
+				heroes[x].moving = true;
+				heroes[x].next_x = data.x;
+				heroes[x].next_y = data.y;
+
 				spriteToMove = heroes[x];
 				console.log('spriteToMove');
 				console.log(spriteToMove);
@@ -231,65 +298,65 @@
 
 
 
-		if (heroes.length > 0) {
+		//if (heroes.length > 0) {
+        //
+		//	for (var x = 0; x < heroes.length; x++) {
+		//		heroes[x].name_label.x = Math.floor((heroes[x].x + heroes[x].width / 2) - 22);
+		//		heroes[x].name_label.y = Math.floor((heroes[x].y + heroes[x].height / 2) - 60);
+		//	}
+        //
+		//}
 
-			for (var x = 0; x < heroes.length; x++) {
-				heroes[x].name_label.x = Math.floor((heroes[x].x + heroes[x].width / 2) - 22);
-				heroes[x].name_label.y = Math.floor((heroes[x].y + heroes[x].height / 2) - 60);
-			}
 
-		}
-
-
-		if (spriteToMove != null) {
-
-			console.log(spriteToMove.facing);
-
-			if (spriteToMove.facing == 0) {
-				spriteToMove.animations.play('walk-up', 20, true);
-			}
-			if (spriteToMove.facing == 1) {
-				spriteToMove.animations.play('walk-right', 20, true);
-			}
-			if (spriteToMove.facing == 2) {
-				spriteToMove.animations.play('walk-down', 20, true);
-			}
-			if (spriteToMove.facing == 3) {
-				spriteToMove.animations.play('walk-left', 20, true);
-			}
-
-			//spriteToMove.sprite.animations.play('walk-down', 20, true);
-			if (game.physics.arcade.distanceToXY(spriteToMove, gotoX, gotoY) > 8) {
-
-				if (game.physics.arcade.distanceToXY(spriteToMove, gotoX, spriteToMove.y) > 8) {
-					game.physics.arcade.moveToXY(spriteToMove, gotoX, spriteToMove.y, 100);
-
-					if (gotoX > spriteToMove.x) {
-						spriteToMove.facing = 1;
-					}
-					if (gotoX < spriteToMove.x) {
-						spriteToMove.facing = 3;
-					}
-				}
-				else if (game.physics.arcade.distanceToXY(spriteToMove, spriteToMove.x, gotoY) > 8) {
-					game.physics.arcade.moveToXY(spriteToMove, spriteToMove.x, gotoY,100);
-
-					if (gotoY > spriteToMove.y) {
-						spriteToMove.facing = 2;
-					}
-					if (gotoY < spriteToMove.y) {
-						spriteToMove.facing = 0;
-					}
-
-				}
-
-			}
-			else {
-				spriteToMove.animations.stop(null, true);
-				spriteToMove.body.velocity.set(0);
-				spriteToMove = null;
-			}
-		}
+		//if (spriteToMove != null) {
+        //
+		//	console.log(spriteToMove.facing);
+        //
+		//	if (spriteToMove.facing == 0) {
+		//		spriteToMove.animations.play('walk-up', 20, true);
+		//	}
+		//	if (spriteToMove.facing == 1) {
+		//		spriteToMove.animations.play('walk-right', 20, true);
+		//	}
+		//	if (spriteToMove.facing == 2) {
+		//		spriteToMove.animations.play('walk-down', 20, true);
+		//	}
+		//	if (spriteToMove.facing == 3) {
+		//		spriteToMove.animations.play('walk-left', 20, true);
+		//	}
+        //
+		//	//spriteToMove.sprite.animations.play('walk-down', 20, true);
+		//	if (game.physics.arcade.distanceToXY(spriteToMove, gotoX, gotoY) > 8) {
+        //
+		//		if (game.physics.arcade.distanceToXY(spriteToMove, gotoX, spriteToMove.y) > 8) {
+		//			game.physics.arcade.moveToXY(spriteToMove, gotoX, spriteToMove.y, 100);
+        //
+		//			if (gotoX > spriteToMove.x) {
+		//				spriteToMove.facing = 1;
+		//			}
+		//			if (gotoX < spriteToMove.x) {
+		//				spriteToMove.facing = 3;
+		//			}
+		//		}
+		//		else if (game.physics.arcade.distanceToXY(spriteToMove, spriteToMove.x, gotoY) > 8) {
+		//			game.physics.arcade.moveToXY(spriteToMove, spriteToMove.x, gotoY,100);
+        //
+		//			if (gotoY > spriteToMove.y) {
+		//				spriteToMove.facing = 2;
+		//			}
+		//			if (gotoY < spriteToMove.y) {
+		//				spriteToMove.facing = 0;
+		//			}
+        //
+		//		}
+        //
+		//	}
+		//	else {
+		//		spriteToMove.animations.stop(null, true);
+		//		spriteToMove.body.velocity.set(0);
+		//		spriteToMove = null;
+		//	}
+		//}
 
 	}
 
