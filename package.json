@@ -1,6 +1,6 @@
 {
   "name": "Game",
-  "description": "Game",
+  "description": "Medieval Bomberman",
   "main" : "index.js",
   "version": "0.0.1",
   "private": false,
